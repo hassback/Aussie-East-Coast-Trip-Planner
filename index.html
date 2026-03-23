@@ -1,1 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WiFi Tribe — Post-Chapter Trip Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand: #F5F0E8;
+    --sand-dark: #EAE3D5;
+    --ocean: #1A5C7A;
+    --ocean-light: #2A7A9E;
+    --ocean-pale: #D6E9F2;
+    --coral: #E05A3A;
+    --coral-light: #F07050;
+    --moss: #3A6B4A;
+    --moss-light: #4E8A60;
+    --gold: #C8922A;
+    --gold-light: #E8B040;
+    --ink: #1A1A18;
+    --ink-muted: #4A4A44;
+    --ink-faint: #8A8A80;
+    --white: #FDFAF5;
+    --border: rgba(26,26,24,0.12);
+    --border-strong: rgba(26,26,24,0.25);
+  }
 
+  [data-theme="dark"] {
+    --sand: #16181C;
+    --sand-dark: #1E2127;
+    --ocean: #3AABDA;
+    --ocean-light: #55C4F0;
+    --ocean-pale: #0F2D3D;
+    --coral: #F07050;
+    --coral-light: #FF8C6A;
+    --moss: #4E8A60;
+    --moss-light: #6FCA85;
+    --gold: #E8B040;
+    --gold-light: #FFD060;
+    --ink: #E8E4DC;
+    --ink-muted: #B8B4AC;
+    --ink-faint: #909090;
+    --white: #22252C;
+    --border: rgba(255,255,255,0.1);
+    --border-strong: rgba(255,255,255,0.2);
+  }
+
+  /* Dark mode activates via [data-theme="dark"] only */
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--sand);
+    color: var(--ink);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--ocean);
+    color: var(--white);
+    padding: 32px 40px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    bottom: -40px; right: -60px;
+    width: 280px; height: 280px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    top: -80px; right: 120px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+  }
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .header-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(253,250,245,0.55);
+    margin-bottom: 8px;
+  }
+  .header-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    line-height: 1.15;
+    margin-bottom: 4px;
+  }
+  .header-sub {
+    font-size: 13px;
+    color: rgba(253,250,245,0.65);
+    font-weight: 300;
+  }
+  .dark-toggle {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+    width: 38px; height: 38px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s;
+    line-height: 1;
+    align-self: flex-start;
+  }
+  .dark-toggle:hover { background: rgba(255,255,255,0.25); }
+
+  /* ── DARK MODE OVERRIDES ── */
+  [data-theme="dark"] .dest-card,
+  [data-theme="dark"] .prop-card,
+  [data-theme="dark"] .accom-card,
+  [data-theme="dark"] .budget-card { background: var(--white); border-color: var(--border); }
+  [data-theme="dark"] .nav { background: var(--white); border-color: var(--border); }
+  [data-theme="dark"] .nav-tab { color: var(--ink-faint); }
+  [data-theme="dark"] .nav-tab.active { color: var(--ocean); border-bottom-color: var(--ocean); }
+  [data-theme="dark"] .nav-tab:hover { color: var(--ink); }
+  [data-theme="dark"] select,
+  [data-theme="dark"] input[type="number"] { background: var(--sand-dark); color: var(--ink); border-color: var(--border-strong); }
+  [data-theme="dark"] .prop-filter-btn,
+  [data-theme="dark"] .sort-btn,
+  [data-theme="dark"] .prop-action-btn { background: var(--sand-dark); border-color: var(--border); color: var(--ink-muted); }
+  [data-theme="dark"] .prop-filter-btn.active,
+  [data-theme="dark"] .sort-btn.active { background: var(--ocean); color: #fff; border-color: var(--ocean); }
+  [data-theme="dark"] .prop-action-btn.active { background: var(--ocean-pale); color: var(--ocean); border-color: var(--ocean); }
+  [data-theme="dark"] .prop-stat { background: var(--sand-dark); color: var(--ink-muted); }
+  [data-theme="dark"] .status-new { background: rgba(58,171,218,0.15); color: var(--ocean); }
+  [data-theme="dark"] .status-shortlisted { background: rgba(232,176,64,0.15); color: var(--gold); }
+  [data-theme="dark"] .status-contacted { background: rgba(78,138,96,0.15); color: var(--moss-light); }
+  [data-theme="dark"] .status-passed { background: var(--sand-dark); color: var(--ink-faint); }
+  [data-theme="dark"] .dest-tag.green { background: rgba(78,138,96,0.2); color: var(--moss-light); }
+  [data-theme="dark"] .dest-tag.amber { background: rgba(232,176,64,0.2); color: var(--gold); }
+  [data-theme="dark"] .dest-tag.red { background: rgba(240,112,80,0.2); color: var(--coral-light); }
+  [data-theme="dark"] .rating-bar { background: var(--sand-dark); }
+  [data-theme="dark"] .budget-result-row.total { border-color: var(--border); }
+  [data-theme="dark"] .timeline-item { background: var(--white); border-color: var(--border); }
+  [data-theme="dark"] .timeline-dot { background: var(--white); }
+  [data-theme="dark"] .prop-summary-bar { background: var(--white); border-color: var(--border); }
+  [data-theme="dark"] .section-sub { color: var(--ink-faint); }
+  [data-theme="dark"] img { opacity: 0.88; }
+  [data-theme="dark"] .check-item { color: var(--ink); }
+  [data-theme="dark"] .check-item input { accent-color: var(--ocean); }
+  [data-theme="dark"] .breakdown-bar-bg { background: var(--sand-dark); }
+  [data-theme="dark"] .accom-card-title { color: var(--ink); }
+  [data-theme="dark"] .platform-link { background: var(--sand-dark); border-color: var(--border); color: var(--ink); }
+  [data-theme="dark"] .prop-card.shortlisted { border-color: var(--gold); background: rgba(232,176,64,0.06); }
+  [data-theme="dark"] .prop-card.contacted { border-color: var(--moss-light); background: rgba(78,138,96,0.06); }
+  [data-theme="dark"] .prop-card.passed { opacity: 0.5; }
+  [data-theme="dark"] .expand-btn { color: var(--ink-faint); }
+  [data-theme="dark"] .empty-state { color: var(--ink-faint); }
+  [data-theme="dark"] .sort-row { border-color: var(--border); }
+  [data-theme="dark"] .prop-filter-label { color: var(--ink-faint); }
+  [data-theme="dark"] .prop-img-source { background: rgba(0,0,0,0.7); }
+
+  .header-dates {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .date-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12px;
+    color: rgba(253,250,245,0.9);
+  }
+  .date-pill .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold-light);
+    flex-shrink: 0;
+  }
+  .date-pill .dot.coral { background: var(--coral-light); }
+  .date-pill .dot.green { background: #6FCA85; }
+
+  /* NAV TABS */
+  .nav {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    display: flex;
+    gap: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    overflow-x: auto;
+  }
+  .nav-tab {
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-faint);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.15s;
+    border-bottom-width: 2px;
+  }
+  .nav-tab:hover { color: var(--ink); }
+  .nav-tab.active {
+    color: var(--ocean);
+    border-bottom-color: var(--ocean);
+  }
+
+  /* MAIN */
+  .main { padding: 32px 40px; max-width: 1100px; }
+  .prop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+  .section-sub {
+    font-size: 13px;
+    color: var(--ink-muted);
+    margin-bottom: 24px;
+    font-weight: 300;
+  }
+
+  /* ── DESTINATIONS ── */
+  .dest-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .dest-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    min-height: 160px;
+  }
+  .dest-card:hover { border-color: var(--ocean-light); box-shadow: 0 2px 12px rgba(26,92,122,0.1); }
+  .dest-card-img-wrap {
+    width: 220px;
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+    background: var(--sand-dark);
+  }
+  .dest-card-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s; }
+  .dest-card:hover .dest-card-img-wrap img { transform: scale(1.06); }
+  .dest-card-body { padding: 14px 16px; flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+  @media(max-width: 600px) {
+    .dest-card { flex-direction: column; }
+    .dest-card-img-wrap { width: 100%; height: 160px; }
+  }
+
+  /* ── MOBILE RESPONSIVE ── */
+  @media (max-width: 640px) {
+    /* Header */
+    .header { padding: 20px 16px 18px; }
+    .header-title { font-size: 22px; }
+    .header-sub { font-size: 12px; }
+    .header-top { gap: 12px; }
+    .header-dates { gap: 6px; margin-top: 14px; }
+    .date-pill { font-size: 11px; padding: 4px 10px; }
+    .dark-toggle { width: 34px; height: 34px; font-size: 16px; }
+
+    /* Nav */
+    .nav { padding: 0 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .nav-tab { padding: 12px 14px; font-size: 12px; white-space: nowrap; }
+
+    /* Main content */
+    .main { padding: 16px 12px; }
+    .section-title { font-size: 18px; }
+    .section-sub { font-size: 12px; margin-bottom: 16px; }
+
+    /* Destination cards — already stack via earlier rule, refine here */
+    .dest-card-img-wrap { height: 140px; }
+    .dest-card-body { padding: 12px 14px; }
+    .dest-card-name { font-size: 14px; }
+    .sort-bar { gap: 6px; }
+    .sort-btn { font-size: 11px; padding: 5px 10px; }
+
+    /* Timeline */
+    .timeline-item { padding: 12px 14px 12px 44px; }
+    .timeline-dot { left: 14px; }
+    .tl-date { font-size: 10px; }
+    .tl-title { font-size: 13px; }
+    .tl-body { font-size: 12px; }
+
+    /* Accommodation */
+    .accom-grid { grid-template-columns: 1fr; }
+    .stat-row { gap: 8px; }
+    .stat-box { padding: 10px 12px; }
+    .stat-val { font-size: 18px; }
+    .input-row { flex-direction: column; gap: 8px; }
+    .input-group { width: 100%; }
+
+    /* Budget */
+    .budget-layout { grid-template-columns: 1fr; }
+    .per-person-val { font-size: 28px; }
+    .budget-input-row { flex-wrap: wrap; }
+    .budget-input-label { min-width: 120px; }
+
+    /* Properties */
+    .prop-summary-bar { gap: 6px; flex-wrap: wrap; }
+    .prop-summary-box { min-width: 70px; padding: 10px 8px; }
+    .prop-filters { gap: 10px; }
+    .prop-filter-group { gap: 5px; }
+    .prop-filter-label { width: 80px; font-size: 10px; }
+    .prop-filter-btn { font-size: 10px; padding: 4px 9px; }
+    .prop-img-wrap { height: 160px; }
+    .prop-header { gap: 8px; }
+    .prop-name { font-size: 14px; }
+    .prop-stats { flex-wrap: wrap; gap: 4px; }
+    .prop-stat { font-size: 11px; }
+    .prop-actions { flex-wrap: wrap; gap: 6px; }
+    .prop-action-btn { font-size: 11px; padding: 5px 10px; }
+    .prop-price { font-size: 20px; }
+
+    /* Hide decorative header blobs on mobile */
+    .header::before, .header::after { display: none; }
+  }
+
+  @media (max-width: 400px) {
+    .header-title { font-size: 19px; }
+    .nav-tab { padding: 11px 10px; font-size: 11px; }
+    .prop-filter-label { display: none; }
+    .prop-filter-group { gap: 4px; }
+  }
+  .dest-card:hover { border-color: var(--ocean-light); box-shadow: 0 2px 12px rgba(26,92,122,0.1); }
+  .dest-card.selected { border-color: var(--ocean); background: var(--ocean-pale); }
+  .dest-card .star {
+    position: absolute; bottom: 8px; left: 8px;
+    font-size: 10px; font-family: 'DM Mono', monospace;
+    background: var(--ocean); color: var(--white);
+    padding: 2px 8px; border-radius: 10px;
+    display: none; z-index: 2;
+  }
+  .dest-card.top .star { display: block; }
+  .dest-card-name { font-weight: 500; font-size: 15px; margin-bottom: 2px; }
+  .dest-card-region { font-size: 11px; color: var(--ink-faint); margin-bottom: 10px; font-family: 'DM Mono', monospace; }
+  .dest-card-airport { font-size: 12px; color: var(--ink-muted); margin-bottom: 12px; display: flex; align-items: center; gap: 5px; }
+  .dest-card-airport svg { opacity: 0.5; }
+  .rating-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .rating-label { font-size: 11px; color: var(--ink-faint); width: 88px; flex-shrink: 0; }
+  .rating-bar { flex: 1; height: 4px; background: var(--sand-dark); border-radius: 2px; overflow: hidden; }
+  .rating-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+  .fill-great { background: var(--moss-light); }
+  .fill-ok { background: var(--gold); }
+  .fill-weak { background: var(--coral); }
+  .dest-tag-row { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
+  .dest-tag {
+    font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 500;
+    font-family: 'DM Mono', monospace;
+  }
+  .dest-tag.green { background: #D4EDD8; color: var(--moss); }
+  .dest-tag.amber { background: #F5E6C8; color: #8A6010; }
+  .dest-tag.red { background: #FAD8D0; color: #8A2810; }
+  .dest-card-note { font-size: 12px; color: var(--ink-muted); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); line-height: 1.55; display: none; }
+  .dest-card.expanded .dest-card-note { display: block; }
+  .expand-btn { font-size: 11px; color: var(--ocean); cursor: pointer; margin-top: 8px; font-family: 'DM Mono', monospace; }
+
+  .sort-bar { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+  .sort-label { font-size: 12px; color: var(--ink-faint); }
+  .sort-btn {
+    font-size: 11px; padding: 4px 10px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--white); color: var(--ink-muted);
+    font-family: 'DM Mono', monospace; transition: all 0.12s;
+  }
+  .sort-btn:hover, .sort-btn.active { background: var(--ocean); color: var(--white); border-color: var(--ocean); }
+
+  /* ── TIMELINE ── */
+  .timeline { position: relative; padding-left: 32px; }
+  .timeline::before {
+    content: '';
+    position: absolute; left: 9px; top: 8px; bottom: 8px;
+    width: 2px; background: var(--border-strong);
+    border-radius: 1px;
+  }
+  .tl-item {
+    position: relative;
+    margin-bottom: 28px;
+  }
+  .tl-dot {
+    position: absolute; left: -27px; top: 6px;
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid var(--white);
+    box-shadow: 0 0 0 2px var(--border-strong);
+  }
+  .tl-dot.ocean { background: var(--ocean); box-shadow: 0 0 0 2px var(--ocean); }
+  .tl-dot.coral { background: var(--coral); box-shadow: 0 0 0 2px var(--coral); }
+  .tl-dot.moss { background: var(--moss); box-shadow: 0 0 0 2px var(--moss); }
+  .tl-dot.gold { background: var(--gold); box-shadow: 0 0 0 2px var(--gold); }
+  .tl-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-bottom: 4px;
+  }
+  .tl-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .tl-title { font-weight: 500; font-size: 14px; margin-bottom: 4px; }
+  .tl-body { font-size: 13px; color: var(--ink-muted); line-height: 1.55; }
+  .tl-body ul { padding-left: 16px; margin-top: 4px; }
+  .tl-body li { margin-bottom: 3px; }
+  .tl-badge {
+    display: inline-block; font-size: 10px; font-family: 'DM Mono', monospace;
+    padding: 2px 8px; border-radius: 8px; margin-bottom: 6px; font-weight: 500;
+  }
+  .badge-action { background: #FAD8D0; color: #8A2810; }
+  .badge-free { background: #F5E6C8; color: #8A6010; }
+  .badge-trip { background: #D4EDD8; color: var(--moss); }
+  .badge-note { background: var(--ocean-pale); color: var(--ocean); }
+
+  /* ── ACCOMMODATION ── */
+  .accom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  @media(max-width:700px) { .accom-grid { grid-template-columns: 1fr; } }
+
+  .accom-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px;
+  }
+  .accom-card-title { font-weight: 500; font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .accom-card-title .icon { font-size: 16px; }
+
+  .stat-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .stat-box {
+    flex: 1; min-width: 80px;
+    background: var(--sand); border-radius: 8px; padding: 10px 12px; text-align: center;
+  }
+  .stat-val { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--ocean); }
+  .stat-lbl { font-size: 10px; color: var(--ink-faint); font-family: 'DM Mono', monospace; margin-top: 2px; }
+
+  .input-group { margin-bottom: 12px; }
+  .input-label { font-size: 11px; color: var(--ink-faint); margin-bottom: 4px; font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; }
+  .input-row { display: flex; gap: 8px; }
+  input[type=number], input[type=text], select {
+    background: var(--sand); border: 1px solid var(--border);
+    border-radius: 7px; padding: 7px 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink);
+    outline: none; transition: border-color 0.15s; width: 100%;
+  }
+  input:focus, select:focus { border-color: var(--ocean); }
+  .accom-platforms { display: flex; flex-direction: column; gap: 6px; }
+  .platform-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 10px; background: var(--sand); border-radius: 8px;
+    font-size: 12px;
+  }
+  .platform-name { font-weight: 500; }
+  .platform-link {
+    font-size: 11px; color: var(--ocean); cursor: pointer;
+    font-family: 'DM Mono', monospace; text-decoration: none;
+  }
+  .checklist { display: flex; flex-direction: column; gap: 6px; }
+  .check-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 8px 10px; background: var(--sand); border-radius: 8px;
+    font-size: 12px; cursor: pointer;
+  }
+  .check-item input[type=checkbox] { margin-top: 1px; accent-color: var(--ocean); flex-shrink: 0; }
+  .check-item.done { opacity: 0.5; text-decoration: line-through; }
+  .check-item.done { text-decoration: line-through; }
+
+  /* ── BUDGET ── */
+  .budget-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; }
+  @media(max-width:700px){ .budget-layout { grid-template-columns: 1fr; } }
+
+  .budget-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .budget-card-title { font-weight: 500; font-size: 14px; margin-bottom: 14px; }
+
+  .budget-inputs { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .budget-input-row { display: flex; align-items: center; gap: 10px; }
+  .budget-input-label { font-size: 12px; color: var(--ink-muted); flex: 1; }
+  .budget-input-row input { width: 90px; flex-shrink: 0; }
+
+  .budget-results { display: flex; flex-direction: column; gap: 8px; }
+  .budget-result-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 12px; border-radius: 8px; background: var(--sand);
+  }
+  .budget-result-row.total {
+    background: var(--ocean); color: var(--white); font-weight: 500;
+  }
+  .budget-result-label { font-size: 13px; }
+  .budget-result-val { font-family: 'DM Serif Display', serif; font-size: 18px; }
+  .budget-result-row.total .budget-result-val { color: var(--white); }
+
+  .budget-breakdown { margin-top: 16px; }
+  .breakdown-title { font-size: 12px; color: var(--ink-faint); font-family: 'DM Mono', monospace; margin-bottom: 8px; }
+  .breakdown-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .breakdown-bar-label { font-size: 12px; color: var(--ink-muted); width: 80px; flex-shrink: 0; }
+  .breakdown-bar-bg { flex: 1; height: 8px; background: var(--sand-dark); border-radius: 4px; overflow: hidden; }
+  .breakdown-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+  .breakdown-bar-val { font-size: 12px; color: var(--ink-muted); width: 50px; text-align: right; font-family: 'DM Mono', monospace; }
+
+  .per-person-highlight {
+    background: var(--ocean-pale); border: 1px solid rgba(26,92,122,0.2);
+    border-radius: 10px; padding: 16px; text-align: center; margin-bottom: 16px;
+  }
+  .per-person-label { font-size: 11px; color: var(--ocean); font-family: 'DM Mono', monospace; margin-bottom: 4px; }
+  .per-person-val { font-family: 'DM Serif Display', serif; font-size: 36px; color: var(--ocean); }
+  .per-person-week { font-size: 11px; color: var(--ink-faint); margin-top: 4px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    cursor: pointer; border: none; transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+  }
+  .btn-primary { background: var(--ocean); color: var(--white); }
+  .btn-primary:hover { background: var(--ocean-light); }
+  .btn-ghost { background: transparent; color: var(--ocean); border: 1px solid var(--ocean); }
+  .btn-ghost:hover { background: var(--ocean-pale); }
+
+  .empty-state {
+    text-align: center; padding: 40px 20px;
+    color: var(--ink-faint); font-size: 13px;
+  }
+
+  /* ── PROPERTIES ── */
+  .prop-filters { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .prop-filter-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .prop-filter-label { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--ink-faint); width: 110px; flex-shrink: 0; text-transform: uppercase; letter-spacing: 0.06em; }
+  .prop-filter-btn { font-size: 11px; padding: 4px 12px; border-radius: 20px; cursor: pointer; border: 1px solid var(--border); background: var(--white); color: var(--ink-muted); font-family: 'DM Mono', monospace; transition: all 0.12s; }
+  .prop-filter-btn:hover, .prop-filter-btn.active { background: var(--ocean); color: var(--white); border-color: var(--ocean); }
+  .prop-grid { display: flex; flex-direction: column; gap: 12px; }
+  .prop-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 18px; transition: border-color 0.15s; }
+  .prop-card:hover { border-color: var(--ocean-light); }
+  .prop-card.shortlisted { border-color: var(--moss); border-width: 1.5px; }
+  .prop-card.contacted { border-color: var(--gold); border-width: 1.5px; }
+  .prop-card.passed { opacity: 0.45; }
+  .prop-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .prop-name { font-weight: 500; font-size: 15px; color: var(--ink); }
+  .prop-meta { font-size: 11px; color: var(--ink-faint); margin-top: 2px; font-family: 'DM Mono', monospace; }
+  .prop-status { font-size: 10px; padding: 3px 10px; border-radius: 20px; font-weight: 500; font-family: 'DM Mono', monospace; white-space: nowrap; }
+  .status-new { background: var(--ocean-pale); color: var(--ocean); }
+  .status-shortlisted { background: #D4EDD8; color: var(--moss); }
+  .status-contacted { background: #F5E6C8; color: #8A6010; }
+  .status-passed { background: var(--sand-dark); color: var(--ink-faint); }
+  .prop-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .prop-stat { font-size: 12px; padding: 3px 9px; background: var(--sand); border-radius: 6px; color: var(--ink-muted); }
+  .prop-stat strong { color: var(--ink); }
+  .prop-price { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--ocean); }
+  .prop-price-label { font-size: 11px; color: var(--ink-faint); }
+  .prop-rating { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--ink-muted); }
+  .prop-body { font-size: 12px; color: var(--ink-muted); line-height: 1.55; margin-bottom: 10px; }
+  .prop-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .prop-action-btn { font-size: 11px; padding: 5px 12px; border-radius: 7px; cursor: pointer; border: 1px solid var(--border); background: var(--white); color: var(--ink-muted); font-family: 'DM Mono', monospace; transition: all 0.12s; }
+  .prop-action-btn:hover { border-color: var(--ocean); color: var(--ocean); }
+  .prop-action-btn.active { background: var(--ocean); color: var(--white); border-color: var(--ocean); }
+  .prop-source { font-size: 10px; color: var(--ink-faint); font-family: 'DM Mono', monospace; }
+  .prop-img-wrap { position: relative; overflow: hidden; border-radius: 8px; margin-bottom: 12px; height: 180px; background: var(--sand-dark); }
+  .prop-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
+  .prop-card:hover .prop-img-wrap img { transform: scale(1.03); }
+  .prop-img-source { position: absolute; bottom: 8px; right: 8px; font-size: 10px; font-family: 'DM Mono', monospace; background: rgba(0,0,0,0.55); color: #fff; padding: 2px 7px; border-radius: 8px; }
+  .prop-summary-bar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .prop-summary-box { flex: 1; min-width: 80px; background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; text-align: center; }
+  .prop-summary-val { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--ocean); }
+  .prop-summary-lbl { font-size: 10px; color: var(--ink-faint); font-family: 'DM Mono', monospace; margin-top: 2px; }
+    .header { padding: 24px 20px 20px; }
+    .nav { padding: 0 20px; }
+    .main { padding: 24px 20px; }
+    .header-title { font-size: 24px; }
+    .dest-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-eyebrow">WiFi Tribe · Melbourne Chapter 2026</div>
+      <div class="header-title">Post-Chapter<br><em>East Coast Trip</em></div>
+      <div class="header-sub">Group trip planner — beach house edition</div>
+    </div>
+    <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()" title="Toggle dark mode">☀️</button>
+  </div>
+  <div class="header-dates">
+    <div class="date-pill"><span class="dot coral"></span> Chapter ends 17 Apr</div>
+    <div class="date-pill"><span class="dot"></span> Free weekend 17–18 Apr</div>
+    <div class="date-pill"><span class="dot green"></span> Trip starts 19 Apr</div>
+    <div class="date-pill"><span class="dot green"></span> 1–2 weeks TBC</div>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-tab active" onclick="showTab('destinations')">Destinations</div>
+  <div class="nav-tab" onclick="showTab('timeline')">Timeline</div>
+  <div class="nav-tab" onclick="showTab('accommodation')">Accommodation</div>
+  <div class="nav-tab" onclick="showTab('budget')">Budget</div>
+  <div class="nav-tab" onclick="showTab('properties')">🏠 Properties</div>
+</nav>
+
+<div class="main">
+
+  <!-- ══ DESTINATIONS ══ -->
+  <div class="section active" id="tab-destinations">
+    <div class="section-title">Destination Comparison</div>
+    <div class="section-sub">9 east coast options ranked across beaches, group house availability, airport ease, and value.</div>
+
+    <div class="sort-bar">
+      <span class="sort-label">Sort by:</span>
+      <button class="sort-btn active" onclick="sortDest('default')">Default</button>
+      <button class="sort-btn" onclick="sortDest('beach')">Beaches</button>
+      <button class="sort-btn" onclick="sortDest('houses')">Group houses</button>
+      <button class="sort-btn" onclick="sortDest('airportEase')">Airport ease</button>
+      <button class="sort-btn" onclick="sortDest('value')">Value</button>
+      <button class="sort-btn" onclick="sortDest('overall')">Overall score</button>
+    </div>
+
+    <div class="dest-grid" id="dest-grid"></div>
+  </div>
+
+  <!-- ══ TIMELINE ══ -->
+  <div class="section" id="tab-timeline">
+    <div class="section-title">Key Dates & Timeline</div>
+    <div class="section-sub">From chapter end to departure — what needs to happen when.</div>
+
+    <div class="timeline">
+
+      <div class="tl-item">
+        <div class="tl-dot ocean"></div>
+        <div class="tl-date">Mon 23 March — this week</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-action">Action needed</div>
+          <div class="tl-title">Post the Slack poll</div>
+          <div class="tl-body">Post interest check in the chapter channel. People need to respond by Tuesday night — asking for 1 week vs 2, and general interest. Every response (including ❌) helps with planning.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot ocean"></div>
+        <div class="tl-date">Tue 24 March — poll closes</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-action">Action needed</div>
+          <div class="tl-title">Poll results in + Tribal Tuesday shortlist</div>
+          <div class="tl-body">Tally up responses before Tribal Tuesday. That night, use the headcount and 1 week / 2 week split to lock in a top 3 destination shortlist as a group.
+            <ul style="margin-top:8px">
+              <li>Current frontrunners: Noosa, Yamba, Port Stephens</li>
+              <li>Decide between 1 location or 2-leg trip</li>
+              <li>Confirm rough numbers so accommodation search can begin</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot coral"></div>
+        <div class="tl-date">Wed 25 – Tue 31 March</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-action">Action needed</div>
+          <div class="tl-title">Accommodation search week</div>
+          <div class="tl-body">Search for properties across the top 3 destinations. Goal is to find 2–3 viable options with real pricing so the group can see actual budget numbers and start planning flights.
+            <ul style="margin-top:8px">
+              <li>Noosa: Noosa Secret Destinations, Niche Holidays, Stayz</li>
+              <li>Yamba / Port Stephens: Airbnb, Stayz</li>
+              <li>Look for: enough beds, communal space, pool, fast wifi</li>
+              <li>Easter 18–21 April — coastal availability drops fast, act quickly</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot gold"></div>
+        <div class="tl-date">Early April — by ~Fri 3 April</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-note">Milestone</div>
+          <div class="tl-title">Share budget numbers & flights go-ahead</div>
+          <div class="tl-body">Once real accommodation costs are confirmed, share per-person budget breakdown with the group. At this point people can confidently book flights into the nearest airport for 19 April.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot coral"></div>
+        <div class="tl-date">By ~Wed 8 April</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-action">Action needed</div>
+          <div class="tl-title">Lock & book accommodation</div>
+          <div class="tl-body">Confirm the property and collect deposits from the group. Don't leave this any later — Good Friday is 3 April and Easter weekend falls 18–21 April, so coastal properties will be near-fully booked by this point.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot gold"></div>
+        <div class="tl-date">Fri 17 – Sat 18 April</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-free">Free weekend</div>
+          <div class="tl-title">Personal adventure time</div>
+          <div class="tl-body">Chapter ends. Two free days for anyone wanting to squeeze in something personal — Uluru, Cairns, Tassie, Sydney, or anything else that didn't happen on chapter. Use however you want.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot moss"></div>
+        <div class="tl-date">Sun 19 April</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-trip">Trip starts</div>
+          <div class="tl-title">Converge on beach house</div>
+          <div class="tl-body">Everyone makes their way to the destination. Fly into nearest major airport, transfer to the house. Arrival day — get settled, grab supplies, first sunset together.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot moss"></div>
+        <div class="tl-date">Mon 20 – Sat 25 April</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-trip">Week 1</div>
+          <div class="tl-title">Beach house life</div>
+          <div class="tl-body">Work remotely, beach mornings, group dinners, explore the local area. Note: Anzac Day is Friday 25 April — public holiday in Australia, things will be quieter.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot gold"></div>
+        <div class="tl-date">Sun 26 April (if 2 weeks)</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-note">2-week option</div>
+          <div class="tl-title">Possible second location</div>
+          <div class="tl-body">If numbers support a 2-week trip, this could be a natural breakpoint — some people depart, others either move on to a second beach town further up the coast, or find smaller/cheaper accommodation in the same place to keep things simple.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot coral"></div>
+        <div class="tl-date">Sun 26 Apr or Sun 3 May</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-free">End of trip</div>
+          <div class="tl-title">Departures</div>
+          <div class="tl-body">Trip wraps. People head home or onward. Coordinate checkout time and any shared airport transfers.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ ACCOMMODATION ══ -->
+  <div class="section" id="tab-accommodation">
+    <div class="section-title">Accommodation Tracker</div>
+    <div class="section-sub">Track your group size, what you need, and where to look.</div>
+
+    <div class="accom-grid">
+
+      <div class="accom-card">
+        <div class="accom-card-title"><span class="icon">👥</span> Group numbers</div>
+        <div class="stat-row" id="stat-row">
+          <div class="stat-box"><div class="stat-val" id="stat-people">—</div><div class="stat-lbl">Total people</div></div>
+          <div class="stat-box"><div class="stat-val" id="stat-private-rooms">—</div><div class="stat-lbl">Private rooms</div></div>
+          <div class="stat-box"><div class="stat-val" id="stat-shared-rooms">—</div><div class="stat-lbl">Shared rooms</div></div>
+          <div class="stat-box"><div class="stat-val" id="stat-total-rooms">—</div><div class="stat-lbl">Total rooms</div></div>
+        </div>
+        <div class="input-group">
+          <div class="input-label">Trip duration</div>
+          <select id="inp-nights" onchange="updateAccom()">
+            <option value="7">1 week (7 nights)</option>
+            <option value="14">2 weeks (14 nights)</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <div class="input-label">Wanting a private room</div>
+          <input type="number" id="inp-private" min="0" max="40" placeholder="e.g. 8" oninput="updateAccom()">
+        </div>
+        <div class="input-group">
+          <div class="input-label">Happy to share a room</div>
+          <input type="number" id="inp-shared" min="0" max="40" placeholder="e.g. 4" oninput="updateAccom()">
+        </div>
+        <div class="input-group">
+          <div class="input-label">People per shared room</div>
+          <input type="number" id="inp-per-shared" min="2" max="4" value="2" oninput="updateAccom()">
+        </div>
+        <div id="house-suggestion" style="font-size:12px;color:var(--ink-muted);margin-top:8px;padding:10px;background:var(--sand);border-radius:8px;display:none;line-height:1.6;"></div>
+      </div>
+
+      <div class="accom-card">
+        <div class="accom-card-title"><span class="icon">✅</span> Booking checklist</div>
+        <div class="checklist" id="checklist">
+          <label class="check-item"><input type="checkbox" onchange="toggleCheck(this)"> Post Slack poll — get headcount</label>
+          <label class="check-item"><input type="checkbox" onchange="toggleCheck(this)"> Confirm 1 week vs 2 week split</label>
+          <label class="check-item"><input type="checkbox" onchange="toggleCheck(this)"> Shortlist destination (Noosa, Yamba, Port Stephens?)</label>
+          <label class="check-item"><input type="checkbox" onchange="toggleCheck(this)"> Search Noosa Secret Destinations</label>
+          <label class="check-item"><input type="checkbox" onchange="toggleCheck(this)"> Search Niche Holidays Noosa</label>
+          <label class="check-item"><input type="checkbox" onchange="toggleCheck(this)"> Search Stayz / Airbnb for alternatives</label>
+          <label class="check-item"><input type="checkbox" onchange="toggleCheck(this)"> Confirm dates with property (19 Apr check-in)</label>
+          <label class="check-item"><input type="checkbox" onchange="toggleCheck(this)"> Collect deposits from group</label>
+          <label class="check-item"><input type="checkbox" onchange="toggleCheck(this)"> Share address & arrival info with group</label>
+          <label class="check-item"><input type="checkbox" onchange="toggleCheck(this)"> Sort airport transfers / car hire</label>
+        </div>
+      </div>
+
+      <div class="accom-card">
+        <div class="accom-card-title"><span class="icon">🔗</span> Platforms to check</div>
+        <div class="accom-platforms">
+          <div class="platform-row">
+            <span class="platform-name">Noosa Secret Destinations</span>
+            <a class="platform-link" href="https://www.noosasecretdestinations.com.au" target="_blank">Visit →</a>
+          </div>
+          <div class="platform-row">
+            <span class="platform-name">Niche Holidays Noosa</span>
+            <a class="platform-link" href="https://www.nicheholidays.com.au" target="_blank">Visit →</a>
+          </div>
+          <div class="platform-row">
+            <span class="platform-name">Noosa Holiday Rentals</span>
+            <a class="platform-link" href="https://www.noosaholidayrentals.com.au" target="_blank">Visit →</a>
+          </div>
+          <div class="platform-row">
+            <span class="platform-name">Stayz</span>
+            <a class="platform-link" href="https://www.stayz.com.au" target="_blank">Visit →</a>
+          </div>
+          <div class="platform-row">
+            <span class="platform-name">Airbnb</span>
+            <a class="platform-link" href="https://www.airbnb.com.au" target="_blank">Visit →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="accom-card">
+        <div class="accom-card-title"><span class="icon">🏠</span> What to look for</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--ink-muted);">
+          <div style="padding:8px 10px;background:var(--sand);border-radius:8px;line-height:1.5;"><strong style="color:var(--ink)">Must haves</strong><br>Enough bedrooms for group · Large communal living/kitchen area · Outdoor space or deck · Fast wifi</div>
+          <div style="padding:8px 10px;background:var(--sand);border-radius:8px;line-height:1.5;"><strong style="color:var(--ink)">Nice to haves</strong><br>Pool · Beach access or short walk · BBQ · Parking · Air con</div>
+          <div style="padding:8px 10px;background:var(--sand);border-radius:8px;line-height:1.5;"><strong style="color:var(--ink)">Check before booking</strong><br>Cancellation policy · Noise/party policy · Checkout time · Extra cleaning fees · Minimum stay</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ BUDGET ══ -->
+  <div class="section" id="tab-budget">
+    <div class="section-title">Budget Estimator</div>
+    <div class="section-sub">Accommodation, flights, and car costs per person. Food and activities not included — those vary too much individually.</div>
+
+    <div class="budget-layout">
+      <div>
+        <div class="budget-card" style="margin-bottom:16px;">
+          <div class="budget-card-title">Group parameters</div>
+          <div class="budget-inputs">
+            <div class="budget-input-row">
+              <span class="budget-input-label">Total people</span>
+              <input type="number" id="b-people" value="12" min="1" oninput="calcBudget()">
+            </div>
+            <div class="budget-input-row">
+              <span class="budget-input-label">Number of nights</span>
+              <input type="number" id="b-nights" value="7" min="1" oninput="calcBudget()">
+            </div>
+          </div>
+        </div>
+
+        <div class="budget-card" style="margin-bottom:16px;">
+          <div class="budget-card-title">Accommodation (AUD)</div>
+          <div style="font-size:11px;color:var(--ink-faint);margin-bottom:10px;font-family:'DM Mono',monospace;">Shared room = 60% of private room cost</div>
+          <div class="budget-inputs">
+            <div class="budget-input-row">
+              <span class="budget-input-label">House total / night</span>
+              <input type="number" id="b-house" value="1200" min="0" oninput="calcBudget()">
+            </div>
+            <div class="budget-input-row">
+              <span class="budget-input-label">Private room people</span>
+              <input type="number" id="b-private" value="8" min="0" oninput="calcBudget()">
+            </div>
+            <div class="budget-input-row">
+              <span class="budget-input-label">Shared room people</span>
+              <input type="number" id="b-shared" value="4" min="0" oninput="calcBudget()">
+            </div>
+          </div>
+          <div id="b-accom-note" style="font-size:11px;color:var(--ink-faint);margin-top:6px;padding:8px 10px;background:var(--sand);border-radius:7px;line-height:1.6;"></div>
+        </div>
+
+        <div class="budget-card" style="margin-bottom:16px;">
+          <div class="budget-card-title">Flights (AUD per person return)</div>
+          <div class="budget-inputs">
+            <div class="budget-input-row">
+              <span class="budget-input-label">Est. flight cost</span>
+              <input type="number" id="b-flights" value="280" min="0" oninput="calcBudget()">
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--ink-faint);margin-top:4px;">e.g. Melbourne → Sunshine Coast return ~$200–350</div>
+        </div>
+
+        <div class="budget-card">
+          <div class="budget-card-title">Cars & fuel (AUD total)</div>
+          <div class="budget-inputs">
+            <div class="budget-input-row">
+              <span class="budget-input-label">Car hire / day</span>
+              <input type="number" id="b-car-day" value="80" min="0" oninput="calcBudget()">
+            </div>
+            <div class="budget-input-row">
+              <span class="budget-input-label">Number of cars</span>
+              <input type="number" id="b-cars" value="2" min="0" oninput="calcBudget()">
+            </div>
+            <div class="budget-input-row">
+              <span class="budget-input-label">Fuel total (whole trip)</span>
+              <input type="number" id="b-fuel" value="150" min="0" oninput="calcBudget()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <div class="per-person-highlight" style="margin-bottom:0;">
+            <div class="per-person-label">Private room</div>
+            <div class="per-person-val" id="b-total-private">$0</div>
+            <div class="per-person-week" id="b-per-week-private">per person</div>
+          </div>
+          <div class="per-person-highlight" style="margin-bottom:0;background:var(--sand-dark);border-color:rgba(26,26,24,0.12);">
+            <div class="per-person-label" style="color:var(--ink-faint);">Shared room</div>
+            <div class="per-person-val" id="b-total-shared" style="color:var(--ink);">$0</div>
+            <div class="per-person-week" id="b-per-week-shared">per person</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--ink-faint);text-align:center;margin-bottom:14px;font-family:'DM Mono',monospace;" id="b-nights-label">for 7 nights</div>
+
+        <div class="budget-card">
+          <div class="budget-card-title">Cost breakdown (private room)</div>
+          <div class="budget-results" id="b-results"></div>
+          <div class="budget-breakdown" style="margin-top:14px;">
+            <div class="breakdown-title">Cost composition</div>
+            <div id="b-bars"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PROPERTIES ══ -->
+  <div class="section" id="tab-properties">
+    <div class="section-title">Property Master List</div>
+    <div class="section-sub">19–26 Apr · 12 guests · 6+ bedrooms. Sourced from Airbnb & Noosa Secret Destinations. Update status as you research.</div>
+
+    <div class="prop-summary-bar">
+      <div class="prop-summary-box"><div class="prop-summary-val" id="ps-total">0</div><div class="prop-summary-lbl">Total found</div></div>
+      <div class="prop-summary-box"><div class="prop-summary-val" id="ps-shortlisted">0</div><div class="prop-summary-lbl">Shortlisted</div></div>
+      <div class="prop-summary-box"><div class="prop-summary-val" id="ps-contacted">0</div><div class="prop-summary-lbl">Contacted</div></div>
+      <div class="prop-summary-box"><div class="prop-summary-val" id="ps-passed">0</div><div class="prop-summary-lbl">Passed</div></div>
+    </div>
+
+    <div class="prop-filters">
+      <div class="prop-filter-group">
+        <span class="prop-filter-label">Status</span>
+        <button class="prop-filter-btn active" onclick="setFilter('status','all',this)">All</button>
+        <button class="prop-filter-btn" onclick="setFilter('status','new',this)">New</button>
+        <button class="prop-filter-btn" onclick="setFilter('status','shortlisted',this)">Shortlisted</button>
+        <button class="prop-filter-btn" onclick="setFilter('status','contacted',this)">Contacted</button>
+        <button class="prop-filter-btn" onclick="setFilter('status','passed',this)">Passed</button>
+      </div>
+      <div class="prop-filter-group">
+        <span class="prop-filter-label">Location</span>
+        <button class="prop-filter-btn active" onclick="setFilter('area','all',this)">All areas</button>
+        <button class="prop-filter-btn" onclick="setFilter('area','Noosa',this)">Noosa</button>
+        <button class="prop-filter-btn" onclick="setFilter('area','Sunshine Coast South',this)">Sunshine Coast South</button>
+        <button class="prop-filter-btn" onclick="setFilter('area','Port Stephens',this)">Port Stephens</button>
+        <button class="prop-filter-btn" onclick="setFilter('area','Yamba',this)">Yamba</button>
+      </div>
+      <div class="prop-filter-group">
+        <span class="prop-filter-label">Price (7 nights)</span>
+        <button class="prop-filter-btn active" onclick="setFilter('price','all',this)">Any</button>
+        <button class="prop-filter-btn" onclick="setFilter('price','under6k',this)">Under $6k</button>
+        <button class="prop-filter-btn" onclick="setFilter('price','6kto8k',this)">$6k–$8k</button>
+        <button class="prop-filter-btn" onclick="setFilter('price','over8k',this)">Over $8k</button>
+      </div>
+      <div class="prop-filter-group">
+        <span class="prop-filter-label">Beach access</span>
+        <button class="prop-filter-btn active" onclick="setFilter('beach','all',this)">Any</button>
+        <button class="prop-filter-btn" onclick="setFilter('beach','1',this)">Walk</button>
+        <button class="prop-filter-btn" onclick="setFilter('beach','2',this)">Short drive</button>
+      </div>
+    </div>
+
+    <div class="prop-grid" id="prop-grid"></div>
+  </div>
+
+</div>
+
+<script>
+// ── TAB SWITCHING ──
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── DESTINATIONS DATA ──
+const destinations = [
+  { name:'Noosa', region:'Sunshine Coast, QLD', airport:'Sunshine Coast (MCY) — 45min', beach:5, houses:4, airportEase:5, value:3, top:true, verdict:'Top pick', verdictClass:'green', img:'https://commons.wikimedia.org/wiki/Special:FilePath/Noosa_Main_Beach_from_boardwalk.jpg', note:'Strong contender for a group house trip. Great national park, calm beach, excellent food scene. Sunshine Coast Airport has direct flights from Sydney, Melbourne, Adelaide & more. April is shoulder season — good availability after Easter crowds thin out.' },
+  { name:'Byron Bay', region:'Northern NSW', airport:'Ballina/Byron (BNK) — 30min', beach:5, houses:4, airportEase:3, value:2, top:false, verdict:'Book fast', verdictClass:'amber', img:'https://commons.wikimedia.org/wiki/Special:FilePath/Byron_Bay_Lighthouse,_Beach_and_Hinterland_in_the_Northern_Rivers,_NSW,_Australia.jpg', note:'The classic choice. Huge supply of large beach houses. Gets very busy around Easter — book early. Nearest airport is Ballina/Byron (BNK, 30min) — good for domestic but limited routes. Gold Coast (OOL) is 1.5hrs away but has far more flight options. Also consider nearby Lennox Head or Brunswick Heads for lower prices.' },
+  { name:'Burleigh Heads', region:'Gold Coast, QLD', airport:'Gold Coast (OOL) — 20min', beach:5, houses:3, airportEase:5, value:3, top:false, verdict:'Urban energy', verdictClass:'amber', img:'https://commons.wikimedia.org/wiki/Special:FilePath/Burleigh_Heads.jpg', note:'Stunning beach and headland with a buzzy cafe/bar scene. Gold Coast Airport is only 20 minutes away — excellent for arrivals. Most rental stock is apartments rather than large standalone houses, which limits big group options.' },
+  { name:'Yamba', region:'Clarence Valley, NSW', airport:'Ballina/Byron (BNK) — 1hr', beach:5, houses:3, airportEase:3, value:5, top:true, verdict:'Hidden gem', verdictClass:'green', img:'https://commons.wikimedia.org/wiki/Special:FilePath/Clarence_Head_lighthouse.jpg', note:'Consistently rated one of Australia\'s best small towns. Excellent surf, great cafes, river mouth location adds variety. Less touristy than Byron so April pricing is much friendlier.' },
+  { name:'Port Stephens', region:'Nelson Bay, NSW', airport:'Newcastle (NTL) — 50min', beach:4, houses:4, airportEase:4, value:5, top:true, verdict:'Best value', verdictClass:'green', img:'https://commons.wikimedia.org/wiki/Special:FilePath/Nelson_Bay.jpg', note:'Underrated gem. Beautiful white sand dunes, calm dolphin-watching bay, less crowded than Byron. Newcastle airport has Jetstar/Virgin links. Best value for large groups.' },
+  { name:'Coffs Harbour', region:'Mid-North Coast, NSW', airport:'Coffs (CFS) — 15min', beach:4, houses:3, airportEase:5, value:4, top:false, verdict:'Easy logistics', verdictClass:'amber', img:'https://commons.wikimedia.org/wiki/Special:FilePath/Coffs_Harbour_IMG_4379_-_panoramio.jpg', note:'Has its own regional airport — easiest arrivals by far. Smaller town with fewer large group houses. Works well as a stopover if doing two locations across 2 weeks.' },
+  { name:'Gerringong', region:'Illawarra, NSW', airport:'Sydney (SYD) — 1.5hr drive', beach:4, houses:2, airportEase:1, value:4, top:false, verdict:'Logistics risk', verdictClass:'red', img:'https://commons.wikimedia.org/wiki/Special:FilePath/Gerringong_from_South_Head.jpg', note:'Gorgeous green headlands and charming village feel. Closest major airport is Sydney — everyone would need to fly in and drive. Small rental pool means large group houses are limited and book fast.' },
+  { name:'Mollymook', region:'Shoalhaven, NSW', airport:'Sydney (SYD) — 2.5hr drive', beach:4, houses:3, airportEase:1, value:4, top:false, verdict:'Logistics risk', verdictClass:'red', img:'https://commons.wikimedia.org/wiki/Special:FilePath/Collers_Beach,_Mollymook.jpg', note:'Beautiful long beach, great seafood, very relaxed south coast energy. No nearby airport — everyone needs to fly into Sydney and drive ~2.5hrs. Logistics get messy for an internationally-dispersed group.' },
+  { name:'Hamilton Island', region:'Whitsundays, QLD', airport:'Own airstrip — direct', beach:5, houses:2, airportEase:5, value:1, top:false, verdict:'Resort splurge', verdictClass:'amber', img:'https://commons.wikimedia.org/wiki/Special:FilePath/Hamilton_Island,_Whitsundays_1,_Australia.jpg', note:'Stunning but a different category. Resort island with no cars, limited self-catering, and premium pricing. Better suited to a 2–3 night splurge than a week-long group house stay.' },
+];
+
+const pipFill = [null,'#E24B4A','#EF9F27','#BA7517','#5DCAA5','#1D9E75'];
+
+function pips(score) {
+  return Array.from({length:5},(_,i)=>`<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${i<score?pipFill[score]:'#D5D0C5'};margin-right:3px;"></span>`).join('');
+}
+
+let sortKey = 'default';
+let expandedCard = null;
+
+function sortDest(key) {
+  sortKey = key;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderDest();
+}
+
+function overall(d) { return d.beach + d.houses + d.airportEase + d.value; }
+
+function renderDest() {
+  let sorted = [...destinations];
+  if (sortKey === 'overall') sorted.sort((a,b) => overall(b)-overall(a));
+  else if (sortKey !== 'default') sorted.sort((a,b) => b[sortKey]-a[sortKey]);
+
+  document.getElementById('dest-grid').innerHTML = sorted.map((d,i) => `
+    <div class="dest-card ${d.top?'top':''}" id="dc-${d.name.replace(/\s/g,'_')}" onclick="toggleCard('${d.name.replace(/\s/g,'_')}')">
+      <div class="dest-card-img-wrap" id="dimg-${d.name.replace(/\s/g,'_')}">
+        ${d.img ? `<img src="${d.img}" alt="${d.name}" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.4s;" loading="lazy">` : ''}
+        <div class="star">&#9733; Recommended</div>
+      </div>
+      <div class="dest-card-body">
+        <div class="dest-card-name">${d.name}</div>
+        <div class="dest-card-region">${d.region}</div>
+        <div class="dest-card-airport">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19.5 2.5S18 1 16.5 2.5L13 6 4.8 4.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.3c.3-.2.4-.6.5-1.1z"/></svg>
+          ${d.airport}
+        </div>
+        <div class="rating-row"><span class="rating-label">Beaches</span><div class="rating-bar"><div class="rating-fill ${d.beach>=4?'fill-great':d.beach>=3?'fill-ok':'fill-weak'}" style="width:${d.beach*20}%"></div></div>${pips(d.beach)}</div>
+        <div class="rating-row"><span class="rating-label">Group houses</span><div class="rating-bar"><div class="rating-fill ${d.houses>=4?'fill-great':d.houses>=3?'fill-ok':'fill-weak'}" style="width:${d.houses*20}%"></div></div>${pips(d.houses)}</div>
+        <div class="rating-row"><span class="rating-label">Airport ease</span><div class="rating-bar"><div class="rating-fill ${d.airportEase>=4?'fill-great':d.airportEase>=3?'fill-ok':'fill-weak'}" style="width:${d.airportEase*20}%"></div></div>${pips(d.airportEase)}</div>
+        <div class="rating-row"><span class="rating-label">Value</span><div class="rating-bar"><div class="rating-fill ${d.value>=4?'fill-great':d.value>=3?'fill-ok':'fill-weak'}" style="width:${d.value*20}%"></div></div>${pips(d.value)}</div>
+        <div class="dest-tag-row">
+          <span class="dest-tag ${d.verdictClass}">${d.verdict}</span>
+          <span class="dest-tag amber">Score: ${overall(d)}/20</span>
+        </div>
+        <div class="dest-card-note">${d.note}</div>
+        <div class="expand-btn">&#9660; more info</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleCard(id) {
+  const card = document.getElementById('dc-' + id);
+  card.classList.toggle('expanded');
+  const btn = card.querySelector('.expand-btn');
+  btn.textContent = card.classList.contains('expanded') ? '&#9650; less' : '&#9660; more info';
+}
+
+renderDest();
+
+// ── ACCOMMODATION ──
+function updateAccom() {
+  const privatePeople = parseInt(document.getElementById('inp-private').value) || 0;
+  const sharedPeople = parseInt(document.getElementById('inp-shared').value) || 0;
+  const perShared = parseInt(document.getElementById('inp-per-shared').value) || 2;
+  const nights = parseInt(document.getElementById('inp-nights').value) || 7;
+
+  const totalPeople = privatePeople + sharedPeople;
+  const privateRooms = privatePeople; // 1 room per private person
+  const sharedRooms = sharedPeople > 0 ? Math.ceil(sharedPeople / perShared) : 0;
+  const totalRooms = privateRooms + sharedRooms;
+
+  document.getElementById('stat-people').textContent = totalPeople || '—';
+  document.getElementById('stat-private-rooms').textContent = totalPeople ? privateRooms : '—';
+  document.getElementById('stat-shared-rooms').textContent = totalPeople ? sharedRooms : '—';
+  document.getElementById('stat-total-rooms').textContent = totalPeople ? totalRooms : '—';
+
+  const sug = document.getElementById('house-suggestion');
+  if (totalPeople) {
+    sug.style.display = 'block';
+    sug.innerHTML =
+      `<strong>${totalPeople} people</strong> total · ${nights} nights<br>` +
+      `<strong>${privateRooms}</strong> private room${privateRooms !== 1 ? 's' : ''} (1 person each) + ` +
+      `<strong>${sharedRooms}</strong> shared room${sharedRooms !== 1 ? 's' : ''} (${perShared} people each)<br>` +
+      `Minimum <strong>${totalRooms} bedrooms</strong> needed in the property`;
+  } else {
+    sug.style.display = 'none';
+  }
+
+  // sync to budget tab
+  document.getElementById('b-people').value = totalPeople || '';
+  document.getElementById('b-nights').value = nights;
+  document.getElementById('b-private').value = privatePeople || '';
+  document.getElementById('b-shared').value = sharedPeople || '';
+  calcBudget();
+}
+
+function toggleCheck(el) {
+  el.closest('.check-item').classList.toggle('done', el.checked);
+}
+
+// ── BUDGET ──
+function calcBudget() {
+  const people = parseFloat(document.getElementById('b-people').value) || 1;
+  const nights = parseFloat(document.getElementById('b-nights').value) || 7;
+  const houseNight = parseFloat(document.getElementById('b-house').value) || 0;
+  const privatePeople = parseFloat(document.getElementById('b-private').value) || 0;
+  const sharedPeople = parseFloat(document.getElementById('b-shared').value) || 0;
+  const flights = parseFloat(document.getElementById('b-flights').value) || 0;
+  const carDay = parseFloat(document.getElementById('b-car-day').value) || 0;
+  const cars = parseFloat(document.getElementById('b-cars').value) || 0;
+  const fuel = parseFloat(document.getElementById('b-fuel').value) || 0;
+
+  // Accommodation split: shared room = 60% of private room weight
+  // Total weighted units = privatePeople * 1.0 + sharedPeople * 0.6
+  const totalHouse = houseNight * nights;
+  const weightedUnits = (privatePeople * 1.0) + (sharedPeople * 0.6);
+  const privateShare = weightedUnits > 0 ? totalHouse / weightedUnits : 0;
+  const accomPrivate = privateShare;
+  const accomShared = privateShare * 0.6;
+
+  // Cars & fuel split equally across all people
+  const carTotal = (carDay * cars * nights) + fuel;
+  const carPP = people > 0 ? carTotal / people : 0;
+
+  const totalPrivate = accomPrivate + flights + carPP;
+  const totalShared = accomShared + flights + carPP;
+
+  document.getElementById('b-total-private').textContent = '$' + Math.round(totalPrivate).toLocaleString();
+  document.getElementById('b-total-shared').textContent = '$' + Math.round(totalShared).toLocaleString();
+  document.getElementById('b-per-week-private').textContent = 'private room';
+  document.getElementById('b-per-week-shared').textContent = 'shared room';
+  document.getElementById('b-nights-label').textContent = `${nights} nights · ${people} people total`;
+
+  // Accom note
+  const noteEl = document.getElementById('b-accom-note');
+  if (weightedUnits > 0) {
+    noteEl.innerHTML = `House total: <strong>$${Math.round(totalHouse).toLocaleString()}</strong> over ${nights} nights<br>
+    Private: <strong>$${Math.round(accomPrivate).toLocaleString()}/person</strong> &nbsp;·&nbsp;
+    Shared: <strong>$${Math.round(accomShared).toLocaleString()}/person</strong>`;
+  } else {
+    noteEl.innerHTML = 'Enter private and shared room numbers above.';
+  }
+
+  const items = [
+    { label:'Accommodation', valPrivate: accomPrivate, valShared: accomShared, color:'#1A5C7A' },
+    { label:'Flights', valPrivate: flights, valShared: flights, color:'#3A6B4A' },
+    { label:'Cars & fuel', valPrivate: carPP, valShared: carPP, color:'#C8922A' },
+  ];
+
+  document.getElementById('b-results').innerHTML = items.map(i=>`
+    <div class="budget-result-row">
+      <span class="budget-result-label">${i.label}</span>
+      <span class="budget-result-val" style="color:${i.color}">$${Math.round(i.valPrivate).toLocaleString()}</span>
+    </div>
+  `).join('') + `
+    <div class="budget-result-row total">
+      <span class="budget-result-label">Total (private room)</span>
+      <span class="budget-result-val">$${Math.round(totalPrivate).toLocaleString()}</span>
+    </div>
+  `;
+
+  document.getElementById('b-bars').innerHTML = items.map(i=>`
+    <div class="breakdown-bar-row">
+      <span class="breakdown-bar-label">${i.label}</span>
+      <div class="breakdown-bar-bg"><div class="breakdown-bar-fill" style="width:${totalPrivate?Math.round(i.valPrivate/totalPrivate*100):0}%;background:${i.color}"></div></div>
+      <span class="breakdown-bar-val">${totalPrivate?Math.round(i.valPrivate/totalPrivate*100):0}%</span>
+    </div>
+  `).join('');
+}
+
+calcBudget();
+
+// ── PROPERTIES ──
+const properties = [
+  { id:1, area:'Sunshine Coast South', beachDist:1, name:'Malakai Beach House', location:'Dicky Beach, Sunshine Coast', beds:6, sleeps:9, price:4459, rating:4.95, reviews:22, source:'Airbnb', status:'new', img:'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1213454040279991911/original/131a66ff-7ff7-40f4-abf6-b12c6f200d86.jpeg?im_w=720', tags:['Pool','Beach nearby','Best value'], note:'Best value on the list. Two fully self-contained levels (upstairs 4br, downstairs 2br) with separate kitchens — great for splitting into two groups. 5min walk to patrolled Dicky Beach. King, king, queen upstairs + king downstairs. 3 baths. Superhosts with 4.95 rating.', url:'https://www.airbnb.com.au/rooms/1213454040279991911' },
+  { id:2, area:'Noosa', beachDist:1, name:'Castaways Beach Escape', location:'Castaways Beach, Noosa', beds:6, sleeps:10, price:5586, rating:4.96, reviews:48, source:'Airbnb', status:'new', img:'https://a0.muscache.com/im/pictures/miso/Hosting-19388207/original/a30902d1-cc35-446b-a349-045c7b60a0ce.jpeg?im_w=720', tags:['Ocean views','Pool','Guest favourite'], note:'Spectacular uninterrupted ocean views from all upstairs bedrooms, infinity pool, man cave with pool table. Directly onto boardwalk to beach. Note: max 10 adults (kids extra). 3.5 baths. 13yr Superhost, 4.96 rating.', url:'https://www.airbnb.com.au/rooms/19388207' },
+  { id:3, area:'Sunshine Coast South', beachDist:1, name:"Beachside Entertainer's Dream", location:'Buddina, Sunshine Coast', beds:6, sleeps:8, price:5951, rating:4.91, reviews:68, source:'Airbnb', status:'new', img:'https://a0.muscache.com/im/pictures/hosting/Hosting-1003381926716062296/original/c88d00d0-4982-4b1f-94c2-02d78a7cf7a6.jpeg?im_w=720', tags:['Luxe','Pool','Weekly discount','Guest favourite'], note:'Pool, ping pong, multiple living areas, fully fenced yard. One street back from beach in Buddina. Bedroom 6 is self-contained with its own kitchenette and private lounge — great for a couple wanting privacy. Note: host mentions this is not suitable for large group bookings — worth confirming before proceeding. 4 baths.', url:'https://www.airbnb.com.au/rooms/1003381926716062296' },
+  { id:4, area:'Sunshine Coast South', beachDist:1, name:'The Palms, Coolum Beach', location:'Coolum Beach, Sunshine Coast', beds:8, sleeps:10, price:6204, rating:5.0, reviews:9, source:'Airbnb', status:'new', img:'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1488198314288890672/original/2b8edba7-6f0b-4899-8ece-9cf3978f12a4.jpeg?im_w=720', tags:['8 bedrooms','Pool','Pet friendly','5.0 rating'], note:'Two completely self-contained levels with separate entries, kitchens and laundries — ideal for splitting 2 families or subgroups. Sleeps up to 16. Pool, 2 BBQs, 350m to Coolum Beach. Pet friendly. Perfect if the group wants total independence within one property. 3.5 baths.', url:'https://www.airbnb.com.au/rooms/1488198314288890672' },
+  { id:5, area:'Noosa', beachDist:1, name:'The Noosa Pandanus House', location:'Noosa Heads', beds:6, sleeps:9, price:6332, rating:4.9, reviews:29, source:'Airbnb', status:'new', img:'https://a0.muscache.com/im/pictures/miso/Hosting-29036624/original/a33208f0-28b8-43c6-906c-c9a8c17e0ff8.jpeg?im_w=720', tags:['Noosa Heads','Superhost','Pool'], note:'Best location on the list — walking distance to Hastings St, Noosa Main Beach and National Park. Hot tub available (+$200). Two full kitchens. Superhost, 4.9 rating. Note: return walk from beach is uphill. 3.5 baths.', url:'https://www.airbnb.com.au/rooms/29036624' },
+  { id:6, area:'Noosa', beachDist:2, name:'Peregian Beach Acres', location:'Peregian Beach, Noosa', beds:7, sleeps:9, price:6914, rating:4.89, reviews:53, source:'Airbnb', status:'new', img:'https://a0.muscache.com/im/pictures/miso/Hosting-17718283/original/0d5c6118-8cfd-4917-9def-fbf5429f56a7.jpeg?im_w=720', tags:['7 bedrooms','Acreage','Secluded','Guest favourite'], note:'Huge acreage property with two separate wings — main house (4br) and a self-contained 3br wing, ideal for two subgroups. Heated pool (winter only — April should be fine), fireplace, hinterland views, pet-friendly. 9min drive to beach rather than walkable. 4.5 baths.', url:'https://www.airbnb.com.au/rooms/17718283' },
+  { id:7, area:'Sunshine Coast South', beachDist:1, name:'Winders Beach House', location:'Marcoola, Sunshine Coast', beds:6, sleeps:8, price:6994, rating:4.67, reviews:12, source:'Airbnb', status:'new', img:'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1330932908468159088/original/a0b71ed2-c9be-4891-8abf-eab87c3715d8.jpeg?im_w=720', tags:['New listing','Near airport'], note:'Steps from the beach via a dune path — no roads to cross. Hamptons-style with three distinct sleeping areas (main house 4br, studio above garage, poolside studio). Pool, beachfront feel, right next to Marcoola Surf Club and cafe strip. Note: the poolside studio (BR6) has a toilet but no shower. 3.5 baths.', url:'https://www.airbnb.com.au/rooms/1330932908468159088' },
+  { id:8, area:'Noosa', beachDist:1, name:'9 Depper St, Sunshine Beach', location:'Sunshine Beach, Noosa', beds:6, sleeps:9, price:9064, rating:4.78, reviews:23, source:'Airbnb', status:'new', img:'https://a0.muscache.com/im/pictures/prohost-api/Hosting-19519047/original/e32a04e5-96c7-4e56-b3be-d4f955f7db30.jpeg?im_w=720', tags:['Pool','Sunshine Beach','Large residence'], note:'Premium Sunshine Beach location 200m from beach, walk to the village cafe strip. Two fully self-contained levels, private pool, marble finishes. Most expensive on the list. One review flagged property showing its age for the price. 4 baths.', url:'https://www.airbnb.com.au/rooms/19519047' },
+  { id:10, area:'Noosa', beachDist:1, name:'Beachfront Hideaway', location:'Sunrise Beach, Noosa', beds:6, sleeps:12, price:null, rating:null, reviews:0, source:'Noosa Secret Destinations', status:'new', img:'https://images.squarespace-cdn.com/content/v1/596eeb053a04115241d560c5/1618530091781-1VJJQIX9O40KP7CYURXG/NoosaHouse_150.jpg', tags:['Direct beach access','Heated lap pool','Waterslide','Sauna','Luxury'], note:'6br/12 beds. Private walkway to Sunrise Beach, 25m heated lap pool, waterslide, sauna, gourmet kitchen. Enquiry-based pricing — contact Noosa Secret Destinations directly.', url:'https://www.noosasecretdestinations.com.au/beach-houses' },
+  { id:11, area:'Noosa', beachDist:1, name:'Elanda', location:'Sunshine Beach, Noosa', beds:5, sleeps:10, price:null, rating:null, reviews:0, source:'Noosa Secret Destinations', status:'new', img:'https://images.squarespace-cdn.com/content/v1/596eeb053a04115241d560c5/1711514244758-ILTTHS7H686T79NIC65D/NSD_Elanda_055_WR.jpg', tags:['Ocean views','Pool','Self-contained apt','Luxury'], note:'5br/10 beds + self-contained apartment. Ocean views, pool, walk to Sunshine Beach and National Park. May fall slightly short on bedroom count for 12 — worth enquiring if the apt makes up numbers.', url:'https://www.noosasecretdestinations.com.au/beach-houses' },
+  { id:12, area:'Port Stephens', beachDist:1, name:'The Family Entertainer', location:'Salamander Bay, Port Stephens', beds:6, sleeps:13, price:2546, rating:4.67, reviews:72, source:'Airbnb', status:'new', img:'https://a0.muscache.com/im/pictures/prohost-api/Hosting-40844662/original/b4808ed0-8379-4d19-bb5f-e01deaf89713.jpeg?im_w=720', tags:['Best value','Water views','Games room'], note:'Exceptional value. Panoramic harbour views with no houses between you and the water. Games room (pool table + table tennis), 2 large decks, media room. 3 kings + queen + tribunk across 6 rooms. Groups 25+ and families only. $2,000 refundable bond required.', url:'https://www.airbnb.com.au/rooms/40844662' },
+  { id:13, area:'Port Stephens', beachDist:1, name:'Island View, Fingal Bay', location:'Fingal Bay, Port Stephens', beds:6, sleeps:12, price:7866, rating:4.5, reviews:8, source:'Airbnb', status:'new', img:'https://a0.muscache.com/im/pictures/prohost-api/Hosting-43520278/original/c2967233-4662-45f6-9b80-ca07977bbd3c.jpeg?im_w=720', tags:['Beach views','Pool','Water views'], note:'Sweeping views over Fingal Bay beach and Fingal Spit. 3-level home, pool, 2 decks, fireplace, walk to beach/surf club/shops. King ensuite on middle level. Note: key pickup required from Nelson Bay office during business hours. 2.5 baths.', url:'https://www.airbnb.com.au/rooms/43520278' },
+  { id:14, area:'Port Stephens', beachDist:1, name:'Family Joy on Shoal Shores', location:'Shoal Bay, Port Stephens', beds:6, sleeps:13, price:5032, rating:null, reviews:0, source:'Airbnb', status:'new', img:'https://a0.muscache.com/im/pictures/prohost-api/Hosting-1599619358123085895/original/c9360e2a-a9b8-48a8-b126-df8fddaba88e.jpeg?im_w=720', tags:['New listing','Pet friendly','0.7km to beach'], note:'New listing 0.7km to Shoal Bay patrolled beach. 3 queens in main house + loft with singles, queen and tribunk. Pet friendly, fenced yard. Peaceful rural outlook. 3 baths.', url:'https://www.airbnb.com.au/rooms/1599619358123085895' },
+  { id:15, area:'Yamba', beachDist:1, name:'Seagrass House', location:'Yamba, NSW', beds:5, sleeps:12, price:5703, rating:4.76, reviews:17, source:'Airbnb', status:'new', img:'https://a0.muscache.com/im/pictures/prohost-api/Hosting-22342384/original/633c4ab2-f091-4e11-926d-be8e9523ef0f.jpeg?im_w=720', tags:['Ocean views','Walk to beach','2 kitchens'], note:'Stunning ocean views, walk to Yamba beach and cafes. Two large north-facing decks with BBQs, 2 full kitchens — perfect for group cooking. 5br/3 baths. Note: only 5 bedrooms so some rooms will need to share. Very limited large-group stock in Yamba.', url:'https://www.airbnb.com.au/rooms/22342384' },
+  { id:16, area:'Yamba', beachDist:1, name:'Tusk', location:'Yamba, NSW', beds:5, sleeps:12, price:8835, rating:null, reviews:0, source:'Airbnb', status:'new', img:'https://a0.muscache.com/im/pictures/miso/Hosting-1436704359565125550/original/e7046065-b16b-42bf-aded-b6781eae664f.jpeg?im_w=720', tags:['New listing','Ocean views','Heart of Yamba'], note:'Brand new listing in the heart of Yamba, steps from cafes and beaches. King master ensuite, 4 additional bedrooms. Enclosed yard and BBQ. 5br/3 baths. No reviews yet but host has 4.75 rating across other properties. Pricier end for Yamba.', url:'https://www.airbnb.com.au/rooms/1436704359565125550' },
+
+];
+
+let propFilters = { status: 'all', area: 'all', price: 'all', beach: 'all' };
+
+function updatePropSummary() {
+  const counts = properties.reduce((acc,p) => { acc[p.status]=(acc[p.status]||0)+1; return acc; }, {});
+  document.getElementById('ps-total').textContent = properties.length;
+  document.getElementById('ps-shortlisted').textContent = counts.shortlisted||0;
+  document.getElementById('ps-contacted').textContent = counts.contacted||0;
+  document.getElementById('ps-passed').textContent = counts.passed||0;
+}
+
+function setStatus(id, status) {
+  const p = properties.find(x => x.id===id);
+  if(p) { p.status=status; renderProps(); }
+}
+
+function setFilter(key, value, btn) {
+  propFilters[key] = value;
+  btn.closest('.prop-filter-group').querySelectorAll('.prop-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProps();
+}
+
+// Legacy support
+function filterProps(filter, btn) { setFilter('status', filter, btn); }
+
+function renderProps() {
+  const filtered = properties.filter(function(p) {
+    if (propFilters.status !== 'all' && p.status !== propFilters.status) return false;
+    if (propFilters.area !== 'all' && p.area !== propFilters.area) return false;
+    if (propFilters.price !== 'all') {
+      if (propFilters.price === 'under6k' && p.price && p.price >= 6000) return false;
+      if (propFilters.price === '6kto8k' && (p.price < 6000 || p.price >= 8000)) return false;
+      if (propFilters.price === 'over8k' && (!p.price || p.price < 8000)) return false;
+    }
+    if (propFilters.beach !== 'all' && p.beachDist !== parseInt(propFilters.beach)) return false;
+    return true;
+  });
+  const statusLabel = { new:'New', shortlisted:'Shortlisted', contacted:'Contacted', passed:'Passed' };
+  const statusCls   = { new:'status-new', shortlisted:'status-shortlisted', contacted:'status-contacted', passed:'status-passed' };
+  const cardCls     = { new:'', shortlisted:'shortlisted', contacted:'contacted', passed:'passed' };
+
+  if (filtered.length === 0) {
+    document.getElementById('prop-grid').innerHTML = '<div class="empty-state">No properties with this status yet.</div>';
+    updatePropSummary();
+    return;
+  }
+
+  var html = '';
+  for (var i=0; i<filtered.length; i++) {
+    var p = filtered[i];
+
+    var priceHtml = p.price
+      ? '<div class="prop-price">$' + p.price.toLocaleString() + '</div><div class="prop-price-label">total &middot; 7 nights</div>'
+      : '<div style="font-size:12px;color:var(--ink-faint);">POA &mdash; enquire</div>';
+
+    var nightlyHtml = p.price
+      ? '<span class="prop-stat"><strong>$' + Math.round(p.price/7).toLocaleString() + '</strong>/night</span>'
+      : '';
+
+    var ratingHtml = '';
+    if (p.rating) {
+      ratingHtml = '<span class="prop-stat">\u2605 <strong>' + p.rating + '</strong> (' + p.reviews + ')</span>';
+    } else if (p.reviews===0 && p.source==='Airbnb') {
+      ratingHtml = '<span class="prop-stat">New listing</span>';
+    }
+
+    var tagsHtml = '';
+    if (p.tags.length) {
+      tagsHtml = '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;">';
+      for (var t=0; t<p.tags.length; t++) {
+        tagsHtml += '<span class="dest-tag green">' + p.tags[t] + '</span>';
+      }
+      tagsHtml += '</div>';
+    }
+
+    var resetHtml = p.status !== 'new'
+      ? '<button class="prop-action-btn" onclick="setStatus(' + p.id + ',\'new\')">&#8635; Reset</button>'
+      : '';
+
+    var imgHtml = p.img
+      ? '<div class="prop-img-wrap"><img src="' + p.img + '" alt="' + p.name + '" loading="lazy"><span class="prop-img-source">' + p.source + '</span></div>'
+      : '<div class="prop-img-wrap" style="display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:var(--ink-faint);">No photo</span></div>';
+
+    html += '<div class="prop-card ' + cardCls[p.status] + '">';
+    html +=   imgHtml;
+    html +=   '<div class="prop-header">';
+    html +=     '<div>';
+    html +=       '<div class="prop-name">' + p.name + '</div>';
+    html +=       '<div class="prop-meta">' + p.location + '</div>';
+    html +=     '</div>';
+    html +=     '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">';
+    html +=       '<span class="prop-status ' + statusCls[p.status] + '">' + statusLabel[p.status] + '</span>';
+    html +=       priceHtml;
+    html +=     '</div>';
+    html +=   '</div>';
+    html +=   '<div class="prop-stats">';
+    html +=     '<span class="prop-stat"><strong>' + p.beds + '</strong> bedrooms</span>';
+    html +=     '<span class="prop-stat"><strong>' + p.sleeps + '</strong> sleeps</span>';
+    html +=     nightlyHtml;
+    html +=     ratingHtml;
+    html +=     '<span class="prop-stat">' + p.source + '</span>';
+    html +=   '</div>';
+    html +=   tagsHtml;
+    html +=   '<div class="prop-body">' + p.note + '</div>';
+    html +=   '<div class="prop-actions">';
+    html +=     '<button class="prop-action-btn ' + (p.status==='shortlisted'?'active':'') + '" onclick="setStatus(' + p.id + ',\'shortlisted\')">\u2605 Shortlist</button>';
+    html +=     '<button class="prop-action-btn ' + (p.status==='contacted'?'active':'') + '" onclick="setStatus(' + p.id + ',\'contacted\')">&#9993; Contacted</button>';
+    html +=     '<button class="prop-action-btn ' + (p.status==='passed'?'active':'') + '" onclick="setStatus(' + p.id + ',\'passed\')">&#10005; Pass</button>';
+    html +=     resetHtml;
+    html +=     '<a href="' + p.url + '" target="_blank" class="prop-action-btn" style="text-decoration:none;">View listing &rarr;</a>';
+    html +=   '</div>';
+    html += '</div>';
+  }
+
+  document.getElementById('prop-grid').innerHTML = html;
+  updatePropSummary();
+}
+
+renderProps();
+
+// ── DARK MODE ──
+function toggleDark() {
+  const root = document.documentElement;
+  const btn = document.getElementById('dark-toggle');
+  const isDark = root.getAttribute('data-theme') === 'dark';
+  if (isDark) {
+    root.setAttribute('data-theme', 'light');
+    btn.textContent = '🌙';
+  } else {
+    root.setAttribute('data-theme', 'dark');
+    btn.textContent = '☀️';
+  }
+}
+
+// Initialise: always start in light mode, show moon icon to offer dark
+(function() {
+  document.documentElement.setAttribute('data-theme', 'light');
+  const btn = document.getElementById('dark-toggle');
+  if (btn) btn.textContent = '🌙';
+})();
+</script>
+</body>
+</html>
