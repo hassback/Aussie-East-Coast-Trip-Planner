@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WiFi Tribe — Post-Chapter Trip Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand: #F5F0E8;
+    --sand-dark: #EAE3D5;
+    --ocean: #1A5C7A;
+    --ocean-light: #2A7A9E;
+    --ocean-pale: #D6E9F2;
+    --coral: #E05A3A;
+    --coral-light: #F07050;
+    --moss: #3A6B4A;
+    --moss-light: #4E8A60;
+    --gold: #C8922A;
+    --gold-light: #E8B040;
+    --ink: #1A1A18;
+    --ink-muted: #4A4A44;
+    --ink-faint: #8A8A80;
+    --white: #FDFAF5;
+    --border: rgba(26,26,24,0.12);
+    --border-strong: rgba(26,26,24,0.25);
+  }
+
+  [data-theme="dark"] {
+    --sand: #16181C;
+    --sand-dark: #1E2127;
+    --ocean: #3AABDA;
+    --ocean-light: #55C4F0;
+    --ocean-pale: #0F2D3D;
+    --coral: #F07050;
+    --coral-light: #FF8C6A;
+    --moss: #4E8A60;
+    --moss-light: #6FCA85;
+    --gold: #E8B040;
+    --gold-light: #FFD060;
+    --ink: #E8E4DC;
+    --ink-muted: #B8B4AC;
+    --ink-faint: #909090;
+    --white: #22252C;
+    --border: rgba(255,255,255,0.1);
+    --border-strong: rgba(255,255,255,0.2);
+  }
+
+  /* Dark mode activates via [data-theme="dark"] only */
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--sand);
+    color: var(--ink);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--ocean);
+    color: var(--white);
+    padding: 32px 40px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    bottom: -40px; right: -60px;
+    width: 280px; height: 280px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    top: -80px; right: 120px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+  }
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .header-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(253,250,245,0.55);
+    margin-bottom: 8px;
+  }
+  .header-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    line-height: 1.15;
+    margin-bottom: 4px;
+  }
+  .header-sub {
+    font-size: 13px;
+    color: rgba(253,250,245,0.65);
+    font-weight: 300;
+  }
+  .dark-toggle {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+    width: 38px; height: 38px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s;
+    line-height: 1;
+    align-self: flex-start;
+  }
+  .dark-toggle:hover { background: rgba(255,255,255,0.25); }
+
+  /* ── DARK MODE OVERRIDES ── */
+  [data-theme="dark"] .dest-card,
+  [data-theme="dark"] .prop-card,
+  [data-theme="dark"] .accom-card,
+  [data-theme="dark"] .budget-card { background: var(--white); border-color: var(--border); }
+  [data-theme="dark"] .nav { background: var(--white); border-color: var(--border); }
+  [data-theme="dark"] .nav-tab { color: var(--ink-faint); }
+  [data-theme="dark"] .nav-tab.active { color: var(--ocean); border-bottom-color: var(--ocean); }
+  [data-theme="dark"] .nav-tab:hover { color: var(--ink); }
+  [data-theme="dark"] select,
+  [data-theme="dark"] input[type="number"] { background: var(--sand-dark); color: var(--ink); border-color: var(--border-strong); }
+  [data-theme="dark"] .prop-filter-btn,
+  [data-theme="dark"] .sort-btn,
+  [data-theme="dark"] .prop-action-btn { background: var(--sand-dark); border-color: var(--border); color: var(--ink-muted); }
+  [data-theme="dark"] .prop-filter-btn.active,
+  [data-theme="dark"] .sort-btn.active { background: var(--ocean); color: #fff; border-color: var(--ocean); }
+  [data-theme="dark"] .prop-action-btn.active { background: var(--ocean-pale); color: var(--ocean); border-color: var(--ocean); }
+  [data-theme="dark"] .prop-stat { background: var(--sand-dark); color: var(--ink-muted); }
+  [data-theme="dark"] .status-new { background: rgba(58,171,218,0.15); color: var(--ocean); }
+  [data-theme="dark"] .status-shortlisted { background: rgba(232,176,64,0.15); color: var(--gold); }
+  [data-theme="dark"] .status-contacted { background: rgba(78,138,96,0.15); color: var(--moss-light); }
+  [data-theme="dark"] .status-passed { background: var(--sand-dark); color: var(--ink-faint); }
+  [data-theme="dark"] .dest-tag.green { background: rgba(78,138,96,0.2); color: var(--moss-light); }
+  [data-theme="dark"] .dest-tag.amber { background: rgba(232,176,64,0.2); color: var(--gold); }
+  [data-theme="dark"] .dest-tag.red { background: rgba(240,112,80,0.2); color: var(--coral-light); }
+  [data-theme="dark"] .rating-bar { background: var(--sand-dark); }
+  [data-theme="dark"] .budget-result-row.total { border-color: var(--border); }
+  [data-theme="dark"] .timeline-item { background: var(--white); border-color: var(--border); }
+  [data-theme="dark"] .timeline-dot { background: var(--white); }
+  [data-theme="dark"] .prop-summary-bar { background: var(--white); border-color: var(--border); }
+  [data-theme="dark"] .section-sub { color: var(--ink-faint); }
+  [data-theme="dark"] img { opacity: 0.88; }
+  [data-theme="dark"] .check-item { color: var(--ink); }
+  [data-theme="dark"] .check-item input { accent-color: var(--ocean); }
+  [data-theme="dark"] .breakdown-bar-bg { background: var(--sand-dark); }
+  [data-theme="dark"] .accom-card-title { color: var(--ink); }
+  [data-theme="dark"] .platform-link { background: var(--sand-dark); border-color: var(--border); color: var(--ink); }
+  [data-theme="dark"] .prop-card.shortlisted { border-color: var(--gold); background: rgba(232,176,64,0.06); }
+  [data-theme="dark"] .prop-card.contacted { border-color: var(--moss-light); background: rgba(78,138,96,0.06); }
+  [data-theme="dark"] .prop-card.passed { opacity: 0.5; }
+  [data-theme="dark"] .expand-btn { color: var(--ink-faint); }
+  [data-theme="dark"] .empty-state { color: var(--ink-faint); }
+  [data-theme="dark"] .sort-row { border-color: var(--border); }
+  [data-theme="dark"] .prop-filter-label { color: var(--ink-faint); }
+  [data-theme="dark"] .prop-img-source { background: rgba(0,0,0,0.7); }
+
+  .header-dates {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .date-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12px;
+    color: rgba(253,250,245,0.9);
+  }
+  .date-pill .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold-light);
+    flex-shrink: 0;
+  }
+  .date-pill .dot.coral { background: var(--coral-light); }
+  .date-pill .dot.green { background: #6FCA85; }
+
+  /* NAV TABS */
+  .nav {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    display: flex;
+    gap: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    overflow-x: auto;
+  }
+  .nav-tab {
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-faint);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.15s;
+    border-bottom-width: 2px;
+  }
+  .nav-tab:hover { color: var(--ink); }
+  .nav-tab.active {
+    color: var(--ocean);
+    border-bottom-color: var(--ocean);
+  }
+
+  /* MAIN */
+  .main { padding: 32px 40px; max-width: 1100px; }
+  .prop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+  .section-sub {
+    font-size: 13px;
+    color: var(--ink-muted);
+    margin-bottom: 24px;
+    font-weight: 300;
+  }
+
+  /* ── DESTINATIONS ── */
+  .dest-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .dest-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    min-height: 160px;
+  }
+  .dest-card:hover { border-color: var(--ocean-light); box-shadow: 0 2px 12px rgba(26,92,122,0.1); }
+  .dest-card.fave  { border-color: var(--ocean); border-width: 2px; box-shadow: 0 2px 16px rgba(26,92,122,0.15); }
+  [data-theme="dark"] .dest-card.fave { border-color: var(--ocean); }
+  .dest-highlights {
+    display: flex; flex-wrap: wrap; gap: 5px;
+    margin-bottom: 10px; margin-top: 2px;
+  }
+  .dest-highlight-pill {
+    font-size: 10px; padding: 3px 8px; border-radius: 20px;
+    background: var(--ocean-pale); color: var(--ocean);
+    font-family: 'DM Mono', monospace; white-space: nowrap;
+    border: 1px solid rgba(26,92,122,0.15);
+  }
+  [data-theme="dark"] .dest-highlight-pill { background: rgba(58,171,218,0.12); color: var(--ocean); }
+  .dest-card-img-wrap {
+    width: 220px;
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+    background: var(--sand-dark);
+  }
+  .dest-card-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s; }
+  .dest-card:hover .dest-card-img-wrap img { transform: scale(1.06); }
+  .dest-card-body { padding: 14px 16px; flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+  @media(max-width: 600px) {
+    .dest-card { flex-direction: column; }
+    .dest-card-img-wrap { width: 100%; height: 160px; }
+  }
+
+  /* ── MOBILE RESPONSIVE ── */
+  @media (max-width: 640px) {
+    /* Header */
+    .header { padding: 20px 16px 18px; }
+    .header-title { font-size: 22px; }
+    .header-sub { font-size: 12px; }
+    .header-top { gap: 12px; }
+    .header-dates { gap: 6px; margin-top: 14px; }
+    .date-pill { font-size: 11px; padding: 4px 10px; }
+    .dark-toggle { width: 34px; height: 34px; font-size: 16px; }
+
+    /* Nav */
+    .nav { padding: 0 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .nav-tab { padding: 12px 14px; font-size: 12px; white-space: nowrap; }
+
+    /* Main content */
+    .main { padding: 16px 12px; }
+    .section-title { font-size: 18px; }
+    .section-sub { font-size: 12px; margin-bottom: 16px; }
+
+    /* Destination cards — already stack via earlier rule, refine here */
+    .dest-card-img-wrap { height: 140px; }
+    .dest-card-body { padding: 12px 14px; }
+    .dest-card-name { font-size: 14px; }
+    .sort-bar { gap: 6px; }
+    .sort-btn { font-size: 11px; padding: 5px 10px; }
+
+    /* Timeline */
+    .timeline-item { padding: 12px 14px 12px 44px; }
+    .timeline-dot { left: 14px; }
+    .tl-date { font-size: 10px; }
+    .tl-title { font-size: 13px; }
+    .tl-body { font-size: 12px; }
+
+    /* Accommodation */
+    .accom-grid { grid-template-columns: 1fr; }
+    .stat-row { gap: 8px; }
+    .stat-box { padding: 10px 12px; }
+    .stat-val { font-size: 18px; }
+    .input-row { flex-direction: column; gap: 8px; }
+    .input-group { width: 100%; }
+
+    /* Budget */
+    .budget-layout { grid-template-columns: 1fr; }
+    .per-person-val { font-size: 28px; }
+    .budget-input-row { flex-wrap: wrap; }
+    .budget-input-label { min-width: 120px; }
+
+    /* Properties */
+    .prop-summary-bar { gap: 6px; flex-wrap: wrap; }
+    .prop-summary-box { min-width: 70px; padding: 10px 8px; }
+    .prop-filters { gap: 10px; }
+    .prop-filter-group { gap: 5px; }
+    .prop-filter-label { width: 80px; font-size: 10px; }
+    .prop-filter-btn { font-size: 10px; padding: 4px 9px; }
+    .prop-img-wrap { height: 160px; }
+    .prop-header { gap: 8px; }
+    .prop-name { font-size: 14px; }
+    .prop-stats { flex-wrap: wrap; gap: 4px; }
+    .prop-stat { font-size: 11px; }
+    .prop-actions { flex-wrap: wrap; gap: 6px; }
+    .prop-action-btn { font-size: 11px; padding: 5px 10px; }
+    .prop-price { font-size: 20px; }
+
+    /* Hide decorative header blobs on mobile */
+    .header::before, .header::after { display: none; }
+  }
+
+  @media (max-width: 400px) {
+    .header-title { font-size: 19px; }
+    .nav-tab { padding: 11px 10px; font-size: 11px; }
+    .prop-filter-label { display: none; }
+    .prop-filter-group { gap: 4px; }
+  }
+  .dest-card:hover { border-color: var(--ocean-light); box-shadow: 0 2px 12px rgba(26,92,122,0.1); }
+  .dest-card.selected { border-color: var(--ocean); background: var(--ocean-pale); }
+  .dest-card .star {
+    position: absolute; bottom: 8px; left: 8px;
+    font-size: 10px; font-family: 'DM Mono', monospace;
+    background: var(--ocean); color: var(--white);
+    padding: 2px 8px; border-radius: 10px;
+    display: none; z-index: 2;
+  }
+  .dest-card.top .star { display: block; }
+  .dest-card-name { font-weight: 500; font-size: 15px; margin-bottom: 2px; }
+  .dest-card-region { font-size: 11px; color: var(--ink-faint); margin-bottom: 10px; font-family: 'DM Mono', monospace; }
+  .dest-card-airport { font-size: 12px; color: var(--ink-muted); margin-bottom: 12px; display: flex; align-items: center; gap: 5px; }
+  .dest-card-airport svg { opacity: 0.5; }
+  .rating-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .rating-label { font-size: 11px; color: var(--ink-faint); width: 88px; flex-shrink: 0; }
+  .rating-bar { flex: 1; height: 4px; background: var(--sand-dark); border-radius: 2px; overflow: hidden; }
+  .rating-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+  .fill-great { background: var(--moss-light); }
+  .fill-ok { background: var(--gold); }
+  .fill-weak { background: var(--coral); }
+  .dest-tag-row { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
+  .dest-tag {
+    font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 500;
+    font-family: 'DM Mono', monospace;
+  }
+  .dest-tag.green { background: #D4EDD8; color: var(--moss); }
+  .dest-tag.fave  { background: var(--ocean); color: #fff; font-weight: 600; letter-spacing: 0.03em; }
+  [data-theme="dark"] .dest-tag.fave { background: var(--ocean); color: #fff; }
+  .dest-tag.amber { background: #F5E6C8; color: #8A6010; }
+  .dest-tag.red { background: #FAD8D0; color: #8A2810; }
+  .dest-card-note { font-size: 12px; color: var(--ink-muted); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); line-height: 1.55; display: none; }
+  .dest-card.expanded .dest-card-note { display: block; }
+  .expand-btn { font-size: 11px; color: var(--ocean); cursor: pointer; margin-top: 8px; font-family: 'DM Mono', monospace; }
+
+  .sort-bar { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+  .sort-label { font-size: 12px; color: var(--ink-faint); }
+  .sort-btn {
+    font-size: 11px; padding: 4px 10px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--white); color: var(--ink-muted);
+    font-family: 'DM Mono', monospace; transition: all 0.12s;
+  }
+  .sort-btn:hover, .sort-btn.active { background: var(--ocean); color: var(--white); border-color: var(--ocean); }
+
+  /* ── TIMELINE ── */
+  .timeline { position: relative; padding-left: 32px; }
+  .timeline::before {
+    content: '';
+    position: absolute; left: 9px; top: 8px; bottom: 8px;
+    width: 2px; background: var(--border-strong);
+    border-radius: 1px;
+  }
+  .tl-item {
+    position: relative;
+    margin-bottom: 28px;
+  }
+  .tl-dot {
+    position: absolute; left: -27px; top: 6px;
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid var(--white);
+    box-shadow: 0 0 0 2px var(--border-strong);
+  }
+  .tl-dot.ocean { background: var(--ocean); box-shadow: 0 0 0 2px var(--ocean); }
+  .tl-dot.coral { background: var(--coral); box-shadow: 0 0 0 2px var(--coral); }
+  .tl-dot.moss { background: var(--moss); box-shadow: 0 0 0 2px var(--moss); }
+  .tl-dot.gold { background: var(--gold); box-shadow: 0 0 0 2px var(--gold); }
+  .tl-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-bottom: 4px;
+  }
+  .tl-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .tl-title { font-weight: 500; font-size: 14px; margin-bottom: 4px; }
+  .tl-body { font-size: 13px; color: var(--ink-muted); line-height: 1.55; }
+  .tl-body ul { padding-left: 16px; margin-top: 4px; }
+  .tl-body li { margin-bottom: 3px; }
+  .tl-badge {
+    display: inline-block; font-size: 10px; font-family: 'DM Mono', monospace;
+    padding: 2px 8px; border-radius: 8px; margin-bottom: 6px; font-weight: 500;
+  }
+  .badge-action { background: #FAD8D0; color: #8A2810; }
+  .badge-free { background: #F5E6C8; color: #8A6010; }
+  .badge-trip { background: #D4EDD8; color: var(--moss); }
+  .badge-note { background: var(--ocean-pale); color: var(--ocean); }
+
+  /* ── ACCOMMODATION ── */
+  .accom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  @media(max-width:700px) { .accom-grid { grid-template-columns: 1fr; } }
+
+  .accom-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px;
+  }
+  .accom-card-title { font-weight: 500; font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .accom-card-title .icon { font-size: 16px; }
+
+  .stat-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .stat-box {
+    flex: 1; min-width: 80px;
+    background: var(--sand); border-radius: 8px; padding: 10px 12px; text-align: center;
+  }
+  .stat-val { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--ocean); }
+  .stat-lbl { font-size: 10px; color: var(--ink-faint); font-family: 'DM Mono', monospace; margin-top: 2px; }
+
+  .input-group { margin-bottom: 12px; }
+  .input-label { font-size: 11px; color: var(--ink-faint); margin-bottom: 4px; font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; }
+  .input-row { display: flex; gap: 8px; }
+  input[type=number], input[type=text], select {
+    background: var(--sand); border: 1px solid var(--border);
+    border-radius: 7px; padding: 7px 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink);
+    outline: none; transition: border-color 0.15s; width: 100%;
+  }
+  input:focus, select:focus { border-color: var(--ocean); }
+  .accom-platforms { display: flex; flex-direction: column; gap: 6px; }
+  .platform-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 10px; background: var(--sand); border-radius: 8px;
+    font-size: 12px;
+  }
+  .platform-name { font-weight: 500; }
+  .platform-link {
+    font-size: 11px; color: var(--ocean); cursor: pointer;
+    font-family: 'DM Mono', monospace; text-decoration: none;
+  }
+  .checklist { display: flex; flex-direction: column; gap: 6px; }
+  .check-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 8px 10px; background: var(--sand); border-radius: 8px;
+    font-size: 12px; cursor: pointer;
+  }
+  .check-item input[type=checkbox] { margin-top: 1px; accent-color: var(--ocean); flex-shrink: 0; }
+  .check-item.done { opacity: 0.5; text-decoration: line-through; }
+  .check-item.done { text-decoration: line-through; }
+
+  /* ── BUDGET ── */
+  .budget-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; }
+  @media(max-width:700px){ .budget-layout { grid-template-columns: 1fr; } }
+
+  .budget-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .budget-card-title { font-weight: 500; font-size: 14px; margin-bottom: 14px; }
+
+  .budget-inputs { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .budget-input-row { display: flex; align-items: center; gap: 10px; }
+  .budget-input-label { font-size: 12px; color: var(--ink-muted); flex: 1; }
+  .budget-input-row input { width: 90px; flex-shrink: 0; }
+
+  .budget-results { display: flex; flex-direction: column; gap: 8px; }
+  .budget-result-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 12px; border-radius: 8px; background: var(--sand);
+  }
+  .budget-result-row.total {
+    background: var(--ocean); color: var(--white); font-weight: 500;
+  }
+  .budget-result-label { font-size: 13px; }
+  .budget-result-val { font-family: 'DM Serif Display', serif; font-size: 18px; }
+  .budget-result-row.total .budget-result-val { color: var(--white); }
+
+  .budget-breakdown { margin-top: 16px; }
+  .breakdown-title { font-size: 12px; color: var(--ink-faint); font-family: 'DM Mono', monospace; margin-bottom: 8px; }
+  .breakdown-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .breakdown-bar-label { font-size: 12px; color: var(--ink-muted); width: 80px; flex-shrink: 0; }
+  .breakdown-bar-bg { flex: 1; height: 8px; background: var(--sand-dark); border-radius: 4px; overflow: hidden; }
+  .breakdown-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+  .breakdown-bar-val { font-size: 12px; color: var(--ink-muted); width: 50px; text-align: right; font-family: 'DM Mono', monospace; }
+
+  .per-person-highlight {
+    background: var(--ocean-pale); border: 1px solid rgba(26,92,122,0.2);
+    border-radius: 10px; padding: 16px; text-align: center; margin-bottom: 16px;
+  }
+  .per-person-label { font-size: 11px; color: var(--ocean); font-family: 'DM Mono', monospace; margin-bottom: 4px; }
+  .per-person-val { font-family: 'DM Serif Display', serif; font-size: 36px; color: var(--ocean); }
+  .per-person-week { font-size: 11px; color: var(--ink-faint); margin-top: 4px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    cursor: pointer; border: none; transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+  }
+  .btn-primary { background: var(--ocean); color: var(--white); }
+  .btn-primary:hover { background: var(--ocean-light); }
+  .btn-ghost { background: transparent; color: var(--ocean); border: 1px solid var(--ocean); }
+  .btn-ghost:hover { background: var(--ocean-pale); }
+
+  .empty-state {
+    text-align: center; padding: 40px 20px;
+    color: var(--ink-faint); font-size: 13px;
+  }
+
+  /* ── PROPERTIES ── */
+  .prop-filters { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .prop-filter-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .prop-filter-label { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--ink-faint); width: 110px; flex-shrink: 0; text-transform: uppercase; letter-spacing: 0.06em; }
+  .prop-filter-btn { font-size: 11px; padding: 4px 12px; border-radius: 20px; cursor: pointer; border: 1px solid var(--border); background: var(--white); color: var(--ink-muted); font-family: 'DM Mono', monospace; transition: all 0.12s; }
+  .prop-filter-btn:hover, .prop-filter-btn.active { background: var(--ocean); color: var(--white); border-color: var(--ocean); }
+  .prop-grid { display: flex; flex-direction: column; gap: 12px; }
+  .prop-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 18px; transition: border-color 0.15s; }
+  .prop-card:hover { border-color: var(--ocean-light); }
+  .prop-card.shortlisted { border-color: var(--moss); border-width: 1.5px; }
+  .prop-card.contacted { border-color: var(--gold); border-width: 1.5px; }
+  .prop-card.passed { opacity: 0.45; }
+  .prop-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .prop-name { font-weight: 500; font-size: 15px; color: var(--ink); }
+  .prop-meta { font-size: 11px; color: var(--ink-faint); margin-top: 2px; font-family: 'DM Mono', monospace; }
+  .prop-status { font-size: 10px; padding: 3px 10px; border-radius: 20px; font-weight: 500; font-family: 'DM Mono', monospace; white-space: nowrap; }
+  .status-new { background: var(--ocean-pale); color: var(--ocean); }
+  .status-shortlisted { background: #D4EDD8; color: var(--moss); }
+  .status-contacted { background: #F5E6C8; color: #8A6010; }
+  .status-passed { background: var(--sand-dark); color: var(--ink-faint); }
+  .prop-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .prop-stat { font-size: 12px; padding: 3px 9px; background: var(--sand); border-radius: 6px; color: var(--ink-muted); }
+  .prop-stat strong { color: var(--ink); }
+  .prop-price { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--ocean); }
+  .prop-price-label { font-size: 11px; color: var(--ink-faint); }
+  .prop-rating { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--ink-muted); }
+  .prop-body { font-size: 12px; color: var(--ink-muted); line-height: 1.55; margin-bottom: 10px; }
+  .prop-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .prop-action-btn { font-size: 11px; padding: 5px 12px; border-radius: 7px; cursor: pointer; border: 1px solid var(--border); background: var(--white); color: var(--ink-muted); font-family: 'DM Mono', monospace; transition: all 0.12s; }
+  .prop-action-btn:hover { border-color: var(--ocean); color: var(--ocean); }
+  .prop-action-btn.active { background: var(--ocean); color: var(--white); border-color: var(--ocean); }
+  .prop-source { font-size: 10px; color: var(--ink-faint); font-family: 'DM Mono', monospace; }
+  .prop-img-wrap { position: relative; overflow: hidden; border-radius: 8px; margin-bottom: 12px; height: 180px; background: var(--sand-dark); }
+  .prop-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
+  .prop-card:hover .prop-img-wrap img { transform: scale(1.03); }
+  .prop-img-source { position: absolute; bottom: 8px; right: 8px; font-size: 10px; font-family: 'DM Mono', monospace; background: rgba(0,0,0,0.55); color: #fff; padding: 2px 7px; border-radius: 8px; }
+  .prop-summary-bar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .prop-summary-box { flex: 1; min-width: 80px; background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; text-align: center; }
+  .prop-summary-val { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--ocean); }
+  .prop-summary-lbl { font-size: 10px; color: var(--ink-faint); font-family: 'DM Mono', monospace; margin-top: 2px; }
+    .header { padding: 24px 20px 20px; }
+    .nav { padding: 0 20px; }
+    .main { padding: 24px 20px; }
+    .header-title { font-size: 24px; }
+    .dest-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-eyebrow">WiFi Tribe · Melbourne Chapter 2026</div>
+      <div class="header-title">Post-Chapter<br><em>East Coast Trip</em></div>
+      <div class="header-sub">Group trip planner — beach house edition</div>
+    </div>
+    <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()" title="Toggle dark mode">☀️</button>
+  </div>
+  <div class="header-dates">
+    <div class="date-pill"><span class="dot coral"></span> Chapter ends 17 Apr</div>
+    <div class="date-pill"><span class="dot"></span> Free weekend 17–18 Apr</div>
+    <div class="date-pill"><span class="dot green"></span> Trip starts 19 Apr</div>
+    <div class="date-pill"><span class="dot green"></span> 1–2 weeks TBC</div>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-tab active" onclick="showTab('glance', this)">🗓️ Trip Glance</div>
+  <div class="nav-tab" onclick="showTab('destinations', this)">📍 Yamba</div>
+  <div class="nav-tab" onclick="showTab('timeline', this)">📅 Timeline</div>
+  <div class="nav-tab" onclick="showTab('sydney', this)">🌉 Weekend in Syd</div>
+  <div class="nav-tab" onclick="showTab('budget', this)">💰 Budget</div>
+  <div class="nav-tab" onclick="showTab('properties', this)">🏠 Chosen property</div>
+</nav>
+
+<div class="main">
+
+  <!-- ══ DESTINATIONS ══ -->
+  <div class="section" id="tab-destinations">
+    <div class="section-title">📍 Yamba, NSW</div>
+    <div class="section-sub">Our chosen destination · Clarence Valley · 19 Apr – 3 May 2026</div>
+
+    <div class="accom-grid">
+
+      <div class="accom-card" style="border-color:var(--ocean);border-width:2px;">
+        <div class="accom-card-title"><span class="icon">🌊</span> Why Yamba</div>
+        <div style="font-size:13px;color:var(--ink-muted);line-height:1.8;">
+          Consistently rated one of Australia's best small coastal towns — and one of the last that hasn't been overrun by high rises, big resorts or fast food. At the mouth of the Clarence River where it meets the Pacific, Yamba has world-class surf, stunning beaches, great food, and a genuinely laid-back pace.<br><br>
+          Less touristy than Byron Bay (only 90 minutes north) means April pricing is much friendlier — and the vibe is all the better for it.
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:12px;">
+          <span class="dest-tag fave">⭐ Our destination</span>
+          <span class="dest-tag green">Best value</span>
+          <span class="dest-tag green">World-class surf</span>
+          <span class="dest-tag green">Less touristy than Byron</span>
+          <span class="dest-tag amber">1hr from Ballina Airport</span>
+        </div>
+      </div>
+
+      <div class="accom-card">
+        <div class="accom-card-title"><span class="icon">🏖️</span> Beaches</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--ink-muted);">
+          <div style="padding:10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Pippi Beach</strong> — Redgate's front door. 1.6km of golden sand, surf breaks off Lovers Point Rock Wall. Dog-friendly at the southern end. The one we'll wake up to.
+          </div>
+          <div style="padding:10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Main Beach + Ocean Pool</strong> — Protected ocean pool right below the Pacific Hotel. Perfect for laps or a wave-free swim. Two rock pools that change with the tides.
+          </div>
+          <div style="padding:10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Turners Beach</strong> — Great surf break with a breakwall walk. Farmers Market in the carpark on Wednesday mornings.
+          </div>
+          <div style="padding:10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Convent Beach</strong> — Quieter, more secluded. Local secret — fewer crowds than Pippi.
+          </div>
+          <div style="padding:10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Whiting Beach</strong> — Flat, calm inlet water. Ideal for kayaking and SUP. 10 min walk from town.
+          </div>
+        </div>
+      </div>
+
+      <div class="accom-card">
+        <div class="accom-card-title"><span class="icon">🏄</span> Angourie — 8 min drive</div>
+        <div style="font-size:12px;color:var(--ink-muted);line-height:1.7;margin-bottom:10px;">
+          The surfing hamlet that launched a thousand pilgrimages. A National Surfing Reserve since 2007 — one of the most celebrated point breaks in Australia.
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:12px;color:var(--ink-muted);">
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Angourie Point</strong> — World-famous right-hand point break. Serious surfers only at the peak, but fun for intermediate surfers on smaller days.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Blue &amp; Green Pools</strong> — Crystal-clear natural rock pools fed by freshwater springs. Local kids climb the cliffs and dive in. One of the best rock pools in Australia — no photos do them justice.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Angourie Walking Track</strong> — 10km return from Angourie Beach to Shelly Beach Campground through Yuraygir National Park. 3–4 hours, stunning coastal scenery.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Spooky Beach</strong> — Secluded cove, excellent snorkelling. More sheltered than the main point.
+          </div>
+        </div>
+      </div>
+
+      <div class="accom-card">
+        <div class="accom-card-title"><span class="icon">🍺</span> Food, drink &amp; nightlife</div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:12px;color:var(--ink-muted);">
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Pacific Hotel</strong> — The iconic Yamba pub. Ocean views from the dining room, great food, live music. Best sunset drink in town — step out of the ocean pool and walk straight up the stairs.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Wobbly Chook Brewery</strong> — Local microbrewery in the industrial estate. Lager, IPA, and the legendary 'Dirty Bird' brown ale. Worth a pilgrimage.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Clarence River Fishermen's Co-op</strong> — Famous Yamba prawns and fresh oysters straight off the boats. A seafood picnic on the breakwall is a Yamba rite of passage.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Beachwood Café</strong> — Local favourite for breakfast. Middle Eastern and Mediterranean influences, locally grown produce. Closed Mondays.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Sandbar Yamba</strong> — Beachside bistro, freshest local seafood. Great for a group lunch.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Wednesday Farmers Market</strong> — Weekly market at the Turners/Whiting Beach carpark, 7–11am. Local produce, sourdough, meats, artisan goods. Perfect start to a midweek morning.
+          </div>
+        </div>
+      </div>
+
+      <div class="accom-card">
+        <div class="accom-card-title"><span class="icon">🚣</span> On the water</div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:12px;color:var(--ink-muted);">
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Clarence River Ferry to Iluka</strong> — Historic MV Mirigini makes the scenic daily run across the mouth of the Clarence ($8pp). Iluka has a UNESCO World Heritage-listed rainforest — entirely free to walk through.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Clarence River History Cruise</strong> — 4hr cruise Wed departing Yamba 11am, returns 3pm. $25pp. Relaxed way to see the waterways.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Yamba Kayak</strong> — Guided moonlight paddles and day sessions on the river. Very popular — book ahead.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Go Fish Yamba</strong> — Fishing charters on the Clarence. Highly reviewed — good option for a group activity day.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">SUP &amp; kayak hire</strong> — Available in town. The flat water at Whiting Beach is ideal. Dolphins often spotted in the river.
+          </div>
+        </div>
+      </div>
+
+      <div class="accom-card">
+        <div class="accom-card-title"><span class="icon">🗺️</span> Day trips from Yamba</div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:12px;color:var(--ink-muted);">
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Brooms Head</strong> — 40 min south. Rocky headland, shallow rock pools at low tide, wild camping with hundreds of kangaroos. Great for fishing and swimming. Rugged and unspoilt.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Maclean</strong> — 30 min inland. Charming riverside Scottish heritage town on the Clarence. Drive up to the lookout for panoramic views across the valley and river bends.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Clarence Valley drive</strong> — Harwood Bridge (longest timber bridge in Australia), Harwood Pub on the river, cane fields and macadamia plantations, Sanctus Brewing Co at Townsend. Good half-day loop.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Byron Bay</strong> — 1.5hrs north. The famous one. Worth a day trip if you haven't been, or even if you have. Markets, lighthouse walk, pass through Brunswick Heads on the way.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Yamba Lighthouse (Pilot Hill)</strong> — 10 min walk from town. Built 1880. Best panoramic views of the coastline, ocean and Clarence River mouth. Perfect sunrise spot.
+          </div>
+        </div>
+      </div>
+
+      <div class="accom-card">
+        <div class="accom-card-title"><span class="icon">🌅</span> Other things to do</div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:12px;color:var(--ink-muted);">
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Bike to Angourie</strong> — Bike Shop Yamba rents bikes. 8 min ride along the highway on a dedicated bike path to Angourie. Great way to get to the pools.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Breakwall walk</strong> — Walk along the breakwall from Turners Beach to the mouth of the Clarence. Ocean on one side, river on the other.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Yamba Golf &amp; Country Club</strong> — River Street. 18 holes with views. Green fees from $12 for members, social rates available. The Deck Café is good for breakfast.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Sunrise yoga with Salty Gypsy</strong> — Morning yoga sessions on Yamba Beach. Surf lessons also available.
+          </div>
+          <div style="padding:9px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">Dolphins, turtles &amp; whales</strong> — Dolphins are regularly spotted in the river and off the beaches. April is the tail end of whale migration season — keep an eye out from the lighthouse or Lovers Point.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ TRIP GLANCE ══ -->
+  <div class="section active" id="tab-glance">
+    <div class="section-title">🗓️ Trip at a Glance</div>
+    <div class="section-sub">Everything you need to know in one place</div>
+
+    <!-- ℹ️ MAIREAD NOTE -->
+    <div style="background:var(--sand);border:1px solid var(--border);border-radius:10px;padding:10px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:16px;">💬</span>
+      <div style="font-size:12px;color:var(--ink-muted);line-height:1.6;">
+        Costs are based on <strong style="color:var(--ink);">7 people</strong> (Mairéad not included). If she joins for week 2, she'd share BR1 with Monet and costs would be recalculated.
+      </div>
+    </div>
+
+    <!-- KEY FACTS ROW -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px;">
+      <div style="background:var(--ocean);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:22px;font-weight:700;color:#fff;">Yamba</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.75);margin-top:2px;font-family:'DM Mono',monospace;">NSW · Northern Rivers</div>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:13px;font-weight:700;color:var(--ink);">19 Apr – 3 May</div>
+        <div style="font-size:11px;color:var(--ink-faint);margin-top:2px;font-family:'DM Mono',monospace;">14 nights · 2 weeks</div>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:13px;font-weight:700;color:var(--ink);">Redgate</div>
+        <div style="font-size:11px;color:var(--ink-faint);margin-top:2px;font-family:'DM Mono',monospace;">54 Clarence St · 5br</div>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:13px;font-weight:700;color:var(--ink);">7 people</div>
+        <div style="font-size:11px;color:var(--ink-faint);margin-top:2px;font-family:'DM Mono',monospace;">Hass · Jojo · Jess · LT · Emre · Monet · Liz</div>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:13px;font-weight:700;color:var(--ocean);">$3,563.78</div>
+        <div style="font-size:11px;color:var(--ink-faint);margin-top:2px;font-family:'DM Mono',monospace;">Total accom cost</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+
+      <!-- WHAT YOU OWE -->
+      <div style="background:var(--white);border:1.5px solid var(--ocean);border-radius:12px;padding:18px;">
+        <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:12px;">💰 What you owe (accom only)</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--ocean-pale);border-radius:8px;">
+            <span style="font-size:12px;color:var(--ink-muted);">Private room — Jess, LT, Emre</span>
+            <strong style="color:var(--ocean);">$699</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--sand);border-radius:8px;">
+            <span style="font-size:12px;color:var(--ink-muted);">Shared — Hass, Jojo &amp; Monet</span>
+            <strong style="color:var(--ocean);">$419</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--sand);border-radius:8px;">
+            <span style="font-size:12px;color:var(--ink-muted);">Liz — twin BR1 w/ Monet · week 1 only</span>
+            <strong style="color:var(--ocean);">$210</strong>
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--ink-faint);font-family:'DM Mono',monospace;">If Mairéad joins wk 2, she shares BR1 with Monet — costs recalculated then · See 💰 Budget tab for full breakdown</div>
+      </div>
+
+    <!-- WEEK TIMELINE -->
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px;">
+      <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:14px;">📅 Who's there when</div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:11px;font-family:'DM Mono',monospace;min-width:560px;">
+          <thead>
+            <tr>
+              <td style="padding:5px 8px;font-weight:500;color:var(--ink-muted);min-width:70px;"></td>
+              <td style="padding:5px 6px;text-align:center;color:var(--ink-muted);">19 Apr<br><span style="font-size:9px;">Sun</span></td>
+              <td style="padding:5px 6px;text-align:center;color:var(--ink-muted);">20–24<br><span style="font-size:9px;">Mon–Fri</span></td>
+              <td style="padding:5px 6px;text-align:center;color:var(--ink-muted);">25 Apr<br><span style="font-size:9px;">ANZAC</span></td>
+              <td style="padding:5px 6px;text-align:center;color:var(--ink-muted);">26 Apr<br><span style="font-size:9px;">Sun</span></td>
+              <td style="padding:5px 6px;text-align:center;color:var(--ink-muted);">27 Apr–<br>2 May</td>
+              <td style="padding:5px 6px;text-align:center;color:var(--ink-muted);">3 May<br><span style="font-size:9px;">Check-out</span></td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-top:1px solid var(--sand-dark);">
+              <td style="padding:7px 8px;font-weight:500;color:var(--ink);">Hass</td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+            </tr>
+            <tr style="border-top:1px solid var(--sand-dark);">
+              <td style="padding:7px 8px;font-weight:500;color:var(--ink);">Jojo</td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+            </tr>
+            <tr style="border-top:1px solid var(--sand-dark);">
+              <td style="padding:7px 8px;font-weight:500;color:var(--ink);">Jess</td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+            </tr>
+            <tr style="border-top:1px solid var(--sand-dark);">
+              <td style="padding:7px 8px;font-weight:500;color:var(--ink);">LT</td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+            </tr>
+            <tr style="border-top:1px solid var(--sand-dark);">
+              <td style="padding:7px 8px;font-weight:500;color:var(--ink);">Monet</td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+            </tr>
+            <tr style="border-top:1px solid var(--sand-dark);">
+              <td style="padding:7px 8px;font-weight:500;color:var(--ink);">Emre</td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+            </tr>
+            <tr style="border-top:1px solid var(--sand-dark);">
+              <td style="padding:7px 8px;font-weight:500;color:var(--ink);">Liz</td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--ocean);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:#D5D0C5;border-radius:4px;" title="Departs"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--sand-dark);border-radius:4px;"></span></td>
+              <td style="padding:7px 6px;text-align:center;"><span style="display:inline-block;width:28px;height:14px;background:var(--sand-dark);border-radius:4px;"></span></td>
+            </tr>
+            
+          </tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:10px;font-size:10px;font-family:'DM Mono',monospace;color:var(--ink-faint);">
+        <span><span style="display:inline-block;width:12px;height:8px;background:var(--ocean);border-radius:2px;margin-right:4px;vertical-align:middle;"></span>In Yamba</span>
+        <span><span style="display:inline-block;width:12px;height:8px;background:var(--sand-dark);border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Not there</span>
+        <span><span style="display:inline-block;width:12px;height:8px;background:#EF9F2744;border-radius:2px;border:1px dashed var(--gold);margin-right:4px;vertical-align:middle;"></span>TBC (Mairéad)</span>
+      </div>
+    </div>
+
+    <!-- HOUSE INFO (arrival day essentials) -->
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:18px;">
+      <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:14px;">🏠 House info (for arrival day)</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;font-size:12px;">
+        <div style="padding:10px 12px;background:var(--sand);border-radius:8px;line-height:1.7;">
+          <strong style="color:var(--ink);">📍 Address</strong><br>
+          <a href="https://maps.google.com/?q=54+Clarence+St+Yamba+NSW+2464" target="_blank" style="color:var(--ocean);">54 Clarence St, Yamba NSW 2464</a>
+        </div>
+        <div style="padding:10px 12px;background:var(--sand);border-radius:8px;line-height:1.7;">
+          <strong style="color:var(--ink);">⏰ Check-in / out</strong><br>
+          Check-in: <strong style="color:var(--moss);">11am–12pm</strong> (early check-in arranged 🎉)<br>
+          <span style="font-size:11px;color:var(--ink-faint);">Standard is 2:00 PM · property manager to confirm closer to the date</span><br>
+          Check-out: 10:00 AM
+        </div>
+        <div style="padding:10px 12px;background:var(--sand);border-radius:8px;line-height:1.7;">
+          <strong style="color:var(--ink);">📞 Property manager</strong><br>
+          Holiday Yamba<br>(02) 6645 8000
+        </div>
+        <div style="padding:10px 12px;background:var(--sand);border-radius:8px;line-height:1.7;">
+          <strong style="color:var(--ink);">🛒 Nearest shops</strong><br>
+          Coles — 5 min drive<br>Town centre — 2 min walk
+        </div>
+        <div style="padding:10px 12px;background:var(--sand);border-radius:8px;line-height:1.7;">
+          <strong style="color:var(--ink);">🏖️ Nearest beach</strong><br>
+          Pippi Beach — 2 min walk
+        </div>
+        <div style="padding:10px 12px;background:var(--sand);border-radius:8px;line-height:1.7;">
+          <strong style="color:var(--ink);">📋 House rules</strong><br>
+          No schoolies · No large parties · No smoking
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </div>
+
+<!-- ══ TIMELINE ══ -->
+  <div class="section" id="tab-timeline">
+    <div class="section-title">Key Dates & Timeline</div>
+    <div class="section-sub">As of Mon 7 April 2026 — destination confirmed, accommodation being locked tomorrow.</div>
+
+    <div class="timeline">
+
+      <div class="tl-item">
+        <div class="tl-dot ocean"></div>
+        <div class="tl-date">Mon 7 April — tonight</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-action">Tonight</div>
+          <div class="tl-title">Final numbers confirmed</div>
+          <div class="tl-body">Confirm final headcount and Mairéad's status (joining = 7 people, not joining = 6). Once confirmed, per-person cost breakdown will be shared with the group.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot coral"></div>
+        <div class="tl-date">Tue 8 April — tomorrow</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-action">Action needed</div>
+          <div class="tl-title">Lock in Redgate + share costs</div>
+          <div class="tl-body">Book Redgate with Holiday Yamba for 19 Apr – 3 May (14 nights, $3,563.78). Share the per-person cost breakdown with the group and collect payments.
+            <ul style="margin-top:8px">
+              <li>Call Holiday Yamba: (02) 6645 8000</li>
+              <li>Or email: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5c2e3932283d302f1c34333035383d25253d313e3d723f3331723d29">[email&#160;protected]</a></li>
+              <li>Costs in the Budget tab — two scenarios depending on Mairéad</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot gold"></div>
+        <div class="tl-date">Fri 17 April</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-free">Travel day</div>
+          <div class="tl-title">Chapter ends — fly Melbourne → Sydney</div>
+          <div class="tl-body">Chapter wraps. Everyone flies Melbourne to Sydney — flights run every 30–60 mins all day, Qantas / Virgin / Jetstar, from ~$80–120 with a checked bag. Head into the city, check in, and kick off the Sydney weekend.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot gold"></div>
+        <div class="tl-date">Sat 18 April</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-free">Sydney day</div>
+          <div class="tl-title">Sydney weekend — see the 🌉 Weekend in Syd tab</div>
+          <div class="tl-body">Full day in Sydney. Harbour Bridge, Opera House, Bondi to Bronte coastal walk, night out on the town. Everyone gets the day to explore however they like before regrouping for the early flight Sunday.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot moss"></div>
+        <div class="tl-date">Sun 19 April</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-trip">Trip starts</div>
+          <div class="tl-title">Fly Sydney → Ballina · Drive to Yamba · Check in</div>
+          <div class="tl-body">Jetstar JQ460 departs Sydney at 7am ($45 or $78 with checked bag) — cheapest option. Multiple other direct flights throughout the day with Jetstar, Qantas and Virgin if you want a later start. 1hr 15min flight, then ~1hr drive south to Yamba. Check into Redgate, grab supplies, first sunset on Pippi Beach.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot moss"></div>
+        <div class="tl-date">Mon 20 – Sat 25 April</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-trip">Week 1</div>
+          <div class="tl-title">Yamba — beach house life</div>
+          <div class="tl-body">Settle into Redgate at 54 Clarence St. Ocean views, two living areas, beach 2 mins walk. Morning surfs at Angourie, coffees in town, dinners at the Pacific Hotel.
+            <ul style="margin-top:8px">
+              <li>Fri 25 April — Anzac Day public holiday · dawn service, quieter day</li>
+              <li>Liz departs Sun 26 April after week 1</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot moss"></div>
+        <div class="tl-date">Sun 26 April – Sat 3 May</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-trip">Week 2</div>
+          <div class="tl-title">Week 2 — Hass, Jojo, Jess, LT, Emre, Monet</div>
+          <div class="tl-body">The full-two-weekers keep the run going. Liz departs on the Sunday and the house opens up. Second week at Redgate — same great views, quieter pace. Note: if Mairéad joins for week 2 she'd share BR1 with Monet.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot coral"></div>
+        <div class="tl-date">Sat 3 May</div>
+        <div class="tl-card">
+          <div class="tl-badge badge-free">End of trip</div>
+          <div class="tl-title">Check out · Departures</div>
+          <div class="tl-body">Check out of Redgate. Drive back to Ballina Airport and fly home or onward. Coordinate checkout time and any shared transfers.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══ SYDNEY WEEKEND ══ -->
+  <div class="section" id="tab-sydney">
+    <div class="section-title">🌉 Weekend in Syd</div>
+    <div class="section-sub">Fri 17 – Sun 19 April · Optional pre-trip weekend · join for all, some or none of it</div>
+
+    <div class="accom-grid">
+
+      <div class="accom-card" style="border-color:var(--ocean);border-width:1.5px;">
+        <div class="accom-card-title"><span class="icon">📋</span> The plan</div>
+        <div style="font-size:13px;color:var(--ink-muted);line-height:1.8;">
+          <strong style="color:var(--ink);">Friday 17 Apr</strong> — Chapter wraps. Fly Melbourne → Sydney whenever suits. Qantas / Virgin / Jetstar depart every 30–60 mins all day from ~$80–120 with a bag. Check in, decompress, dinner somewhere good.<br><br>
+          <strong style="color:var(--ink);">Saturday 18 Apr</strong> — Full day in Sydney. See suggestions below. Regroup in the evening — last big night before the beach starts.<br><br>
+          <strong style="color:var(--ink);">Sunday 19 Apr</strong> — Head to Yamba. See transport options below — fly to Ballina or pile into a van and road trip it up the Pacific Highway.
+        </div>
+      </div>
+
+      <div class="accom-card" style="border-color:var(--moss);border-width:1.5px;">
+        <div class="accom-card-title"><span class="icon">🏠</span> Where we're staying — College St, Darlinghurst</div>
+        <div style="font-size:13px;color:var(--ink-muted);line-height:1.7;">
+          <strong style="color:var(--ink);">Jojo, Hass, Jess &amp; Monet</strong> are staying in an apartment on College St, Darlinghurst — right in the heart of Sydney, walking distance to the CBD, Surry Hills and pretty much everything.<br><br>
+          <strong style="color:var(--gold);">⚠️ TBD — Hass &amp; Jojo</strong> may need to stay an extra night in Sydney to deal with some personal stuff, and fly up to Ballina on Monday 20 Apr instead of Sunday. Nothing confirmed yet — will update when known.<br><br>
+          <strong style="color:var(--moss);">Also joining for the weekend:</strong> Manuela, Reezi &amp; Jess G are coming for the Sydney weekend but not continuing to Yamba. Great to have them for the send-off! 🎉<br><br>
+          If you're joining for the Sydney weekend, see if you can find something close by to us - happy to help! Darlinghurst / Surry Hills / Potts Point are all walkable from College St.
+        </div>
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px;font-size:11px;font-family:'DM Mono',monospace;color:var(--ink-muted);">
+          <div style="padding:8px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">📍 Nearby areas to stay</strong><br>
+            Darlinghurst · Surry Hills · Potts Point · Kings Cross · Paddington<br>
+            All within 10–15 min walk of College St
+          </div>
+          <div style="padding:8px 10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">💰 Rough costs</strong><br>
+            Budget hostels from ~$40/night · Mid-range hotels $120–180/night<br>
+            Book soon — mid-April fills up fast
+          </div>
+        </div>
+      </div>
+
+      <div class="accom-card">
+        <div class="accom-card-title"><span class="icon">🚀</span> Getting to Yamba on Sunday — Option 1: Fly to Ballina</div>
+        <div class="accom-platforms">
+          <div class="platform-row" style="flex-direction:column;align-items:flex-start;gap:3px;padding:10px;">
+            <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+              <span class="platform-name">Jetstar JQ460 · 7:00am — cheapest option</span>
+              <a class="platform-link" href="https://www.jetstar.com" target="_blank">Book →</a>
+            </div>
+            <span style="font-size:11px;color:var(--ink-faint);">SYD → BNK · arrives 8:20am · from $45 (no bag) or $78 (with checked bag) · 1hr 15min</span>
+          </div>
+          <div class="platform-row" style="flex-direction:column;align-items:flex-start;gap:3px;padding:10px;">
+            <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+              <span class="platform-name">Later direct flights (Jetstar, Qantas, Virgin)</span>
+            </div>
+            <span style="font-size:11px;color:var(--ink-faint);">Multiple departures throughout the day up to 7:50pm · from ~$200 with bag · more flexible if you want a sleep-in</span>
+          </div>
+          <div style="font-size:11px;padding:8px 10px;background:var(--sand);border-radius:8px;margin-top:4px;color:var(--ink-muted);line-height:1.7;">
+            <strong style="color:var(--ink);">Ballina → Yamba (~1hr drive)</strong><br>
+            🚗 Hire a car at Ballina Airport — from ~$100/day (standard) or ~$130 (people mover with luggage space) · Avis, Hertz, Budget all at BNK<br>
+            🚌 Blanch's Bus from Ballina — 2 hours, $24 per person
+          </div>
+        </div>
+      </div>
+
+      <div class="accom-card">
+        <div class="accom-card-title"><span class="icon">🚐</span> Getting to Yamba on Sunday — Option 2: Road trip (Jess's idea)</div>
+        <div style="font-size:13px;color:var(--ink-muted);line-height:1.7;margin-bottom:12px;">
+          Skip the airport entirely. Drive up the Pacific Highway in a Kia Carnival — about <strong style="color:var(--ink);">7–8 hours</strong> with stops through Newcastle, Port Macquarie and Coffs. Scenic, social, no checked bag fees.
+        </div>
+
+        <div style="padding:10px 12px;background:var(--ocean-pale);border:1px solid rgba(26,92,122,0.2);border-radius:8px;font-size:11px;font-family:'DM Mono',monospace;color:var(--ocean);margin-bottom:12px;line-height:1.8;">
+          ⏱ <strong>Time comparison</strong><br>
+          ✈️ Fly: 30min train + 2hrs at airport + 1hr flight + 30min Ballina + 2hr bus = <strong>~6 hrs</strong><br>
+          🚗 Drive: door to door from Darlinghurst = <strong>~7 hrs</strong><br>
+          Not that much longer — and way more fun
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--ink-muted);">
+          <div style="padding:10px;background:var(--sand);border-radius:8px;line-height:1.7;">
+            <strong style="color:var(--ink);">🚗 Kia Carnival 8-seater · one-way · 24hr hire</strong><br>
+            Fits 6 people + luggage comfortably. Already priced as a one-way hire so no return logistics to worry about.<br><br>
+            Hire (one-way, 24hr): <strong>$656</strong><br>
+            Fuel (~680km, ~$1.65/L): <strong>~$124</strong><br>
+            Sydney tolls: <strong>~$30</strong><br>
+            <strong style="color:var(--moss);">Total: ~$810 · Per person (6 people): ~$135</strong>
+          </div>
+          <div style="padding:8px 10px;background:var(--sand);border-radius:8px;font-size:11px;font-family:'DM Mono',monospace;color:var(--ink-muted);line-height:1.8;">
+            🛣️ Route: Sydney → Newcastle → Port Macquarie → Coffs Harbour → Grafton → Yamba<br>
+            ⛽ Good fuel stop: Port Macquarie (~3.5hrs in) — stretch legs, grab food, fill up
+          </div>
+        </div>
+      </div>
+
+      <div class="accom-card">
+        <div class="accom-card-title"><span class="icon">🍺</span> Friday night — The Rocks pub crawl (Jess's pick)</div>
+        <div style="font-size:13px;color:var(--ink-muted);line-height:1.7;margin-bottom:10px;">
+          The Rocks is Sydney's historic district — cobblestone laneways, artisan shops, museums, and some of Australia's oldest pubs. A great shout for Friday night or Saturday night depending on what fits everyone's plans.
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--ink-muted);">
+          <div style="padding:10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">1. Arrive early · wander The Rocks</strong><br>
+            Get there an hour or two before to explore the cobblestone laneways and soak up the atmosphere
+          </div>
+          <div style="padding:10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">2. Harbour View Hotel · pre-drinks</strong><br>
+            Stunning views right under the Sydney Harbour Bridge. One of the best spots in Sydney for a pre-dinner drink
+          </div>
+          <div style="padding:10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">3. The Glenmore · rooftop dinner</strong><br>
+            Incredible rooftop bar with views of the Opera House, Harbour Bridge and the Sydney skyline. Perfect for dinner if the weather plays ball
+          </div>
+          <div style="padding:10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">4. The Aussie · craft beers</strong><br>
+            Right next door to The Glenmore — 130 Australian craft beers to work through
+          </div>
+          <div style="padding:10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">5. Fortune of War · nightcap</strong><br>
+            Sydney's oldest pub. A fitting end to a night in the historic district
+          </div>
+          <div style="padding:8px 10px;background:var(--sand);border-radius:8px;font-size:11px;font-family:'DM Mono',monospace;color:var(--ink-muted);">
+            📖 <a href="https://aglobewelltravelled.com/2025/10/21/things-to-do-in-the-rocks-sydney/" target="_blank" style="color:var(--ocean);">Full guide to The Rocks</a> via A Globe Well Travelled
+          </div>
+        </div>
+      </div>
+
+      <div class="accom-card">
+        <div class="accom-card-title"><span class="icon">🌊</span> Saturday — things to do</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--ink-muted);">
+          <div style="padding:10px;background:var(--sand);border-radius:8px;border-left:3px solid var(--ocean);line-height:1.6;">
+            <strong style="color:var(--ink);">🚢 Manly Ferry + beach + cliff walks (Monet's pick)</strong><br>
+            Take the ferry from Circular Quay to Manly — the ferry ride itself has gorgeous harbour views and a wonderful sunset on the way back. Wander the wharf and beach, do the cliff walks around the headland, and check out the breweries and restaurants near the wharf. Less touristy than Bondi and more fun to get to.
+          </div>
+          <div style="padding:10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">🚶 Bondi to Bronte (or Coogee) coastal walk</strong><br>
+            The classic. 2km cliff-top walk from Bondi with tidal pools, cafes and great views. Extend it all the way to Coogee (~6km) if you've got the energy. The Icebergs pool at Bondi is iconic.
+          </div>
+          <div style="padding:10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">🌉 Harbour Bridge + Circular Quay</strong><br>
+            Walk the Pylon Lookout for views of the harbour and Opera House. Or go all out with BridgeClimb (~$200–270pp, book ahead). Ferry to Manly ties in nicely from here.
+          </div>
+          <div style="padding:10px;background:var(--sand);border-radius:8px;line-height:1.6;">
+            <strong style="color:var(--ink);">🍸 Saturday night — Darlinghurst on the doorstep</strong><br>
+            We're already based in Darlinghurst. Oxford St, Crown St, Stanley St all nearby — some of the best bars and restaurants in Sydney. Or do The Rocks crawl on Saturday night instead if that fits better.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ BUDGET ══ -->
+  <div class="section" id="tab-budget">
+    <div class="section-title">Budget Breakdown</div>
+    <div class="section-sub">Redgate, Yamba · 19 Apr – 3 May 2026 · 14 nights · $3,563.78 total · 7 people · accommodation only</div>
+
+    <div class="budget-layout">
+      <div>
+        <div class="budget-card" style="margin-bottom:16px;">
+          <div class="budget-card-title">How costs are split</div>
+          <div style="font-size:12px;color:var(--ink-muted);line-height:1.7;">
+            Private room: <strong style="color:var(--ink);">1.0×</strong> weighting &nbsp;·&nbsp;
+            Shared/twin room: <strong style="color:var(--ink);">0.6×</strong> weighting<br>
+            Liz pays <strong style="color:var(--ink);">0.5×</strong> shared rate (1 week of 2)<br>
+            Monet pays shared rate — twin room whether solo or with someone<br>
+            <span style="color:var(--moss);">If Mairéad joins for week 2, she'd share BR1 with Monet — costs would be recalculated.</span>
+          </div>
+        </div>
+
+        <div class="budget-card">
+          <div class="budget-card-title">Accommodation cost per person — 7 people</div>
+          <div style="font-size:11px;color:var(--ink-faint);font-family:'DM Mono',monospace;margin-bottom:12px;">$3,563.78 ÷ 5.1 weighted units = $699/unit</div>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border);">
+                <th style="text-align:left;padding:6px 4px;color:var(--ink-muted);font-weight:500;">Person</th>
+                <th style="text-align:left;padding:6px 4px;color:var(--ink-muted);font-weight:500;">Room</th>
+                <th style="text-align:right;padding:6px 4px;color:var(--ink-muted);font-weight:500;">Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--sand-dark);"><td style="padding:7px 4px;font-weight:500;">Jess</td><td style="padding:7px 4px;color:var(--ink-muted);font-size:11px;">Private queen · BR2 · 2wk</td><td style="padding:7px 4px;text-align:right;font-weight:600;color:var(--ocean);">$699</td></tr>
+              <tr style="border-bottom:1px solid var(--sand-dark);"><td style="padding:7px 4px;font-weight:500;">LT</td><td style="padding:7px 4px;color:var(--ink-muted);font-size:11px;">Private double · BR5 · 2wk</td><td style="padding:7px 4px;text-align:right;font-weight:600;color:var(--ocean);">$699</td></tr>
+              <tr style="border-bottom:1px solid var(--sand-dark);"><td style="padding:7px 4px;font-weight:500;">Emre</td><td style="padding:7px 4px;color:var(--ink-muted);font-size:11px;">Private double · BR3 · 2wk</td><td style="padding:7px 4px;text-align:right;font-weight:600;color:var(--ocean);">$699</td></tr>
+              <tr style="border-bottom:1px solid var(--sand-dark);"><td style="padding:7px 4px;font-weight:500;">Monet</td><td style="padding:7px 4px;color:var(--ink-muted);font-size:11px;">Twin BR1 · shared wk1, solo wk2</td><td style="padding:7px 4px;text-align:right;font-weight:600;color:var(--ocean);">$419</td></tr>
+              <tr style="border-bottom:1px solid var(--sand-dark);"><td style="padding:7px 4px;font-weight:500;">Hass</td><td style="padding:7px 4px;color:var(--ink-muted);font-size:11px;">Shared queen · BR4 · 2wk</td><td style="padding:7px 4px;text-align:right;font-weight:600;color:var(--ocean);">$419</td></tr>
+              <tr style="border-bottom:1px solid var(--sand-dark);"><td style="padding:7px 4px;font-weight:500;">Jojo</td><td style="padding:7px 4px;color:var(--ink-muted);font-size:11px;">Shared queen · BR4 · 2wk</td><td style="padding:7px 4px;text-align:right;font-weight:600;color:var(--ocean);">$419</td></tr>
+              <tr><td style="padding:7px 4px;font-weight:500;">Liz</td><td style="padding:7px 4px;color:var(--ink-muted);font-size:11px;">Twin BR1 w/ Monet · wk 1 only</td><td style="padding:7px 4px;text-align:right;font-weight:600;color:var(--ocean);">$210</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <div class="budget-card" style="margin-bottom:16px;">
+          <div class="budget-card-title">Property summary</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;">
+            <div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--sand);border-radius:8px;">
+              <span style="color:var(--ink-muted);">Property</span>
+              <span style="font-weight:500;">Redgate, 54 Clarence St</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--sand);border-radius:8px;">
+              <span style="color:var(--ink-muted);">Dates</span>
+              <span style="font-weight:500;">19 Apr – 3 May 2026</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--sand);border-radius:8px;">
+              <span style="color:var(--ink-muted);">Duration</span>
+              <span style="font-weight:500;">14 nights</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--ocean-pale);border-radius:8px;border:1px solid rgba(26,92,122,0.15);">
+              <span style="color:var(--ink-muted);">Total cost</span>
+              <span style="font-weight:600;color:var(--ocean);">$3,563.78</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="budget-card" style="margin-bottom:16px;">
+          <div class="budget-card-title">Room configuration</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:11px;font-family:'DM Mono',monospace;color:var(--ink-muted);line-height:1.8;">
+            <div>BR1 · twin 2 singles → <strong style="color:var(--ink);">Monet + Liz</strong> (wk 1) · <strong style="color:var(--ink);">Monet</strong> solo (wk 2)</div>
+            <div>BR2 · queen → <strong style="color:var(--ink);">Jess</strong> (private)</div>
+            <div>BR3 · double + single → <strong style="color:var(--ink);">Emre</strong> (private)</div>
+            <div>BR4 · queen → <strong style="color:var(--ink);">Hass + Jojo</strong></div>
+            <div>BR5 · double → <strong style="color:var(--ink);">LT</strong> (private)</div>
+            <div style="margin-top:6px;font-size:10px;color:var(--ink-faint);">If Mairéad confirms: she joins Monet in BR1 from wk 2 (Liz's spot)</div>
+          </div>
+        </div>
+
+        <div class="budget-card">
+          <div class="budget-card-title">Notes</div>
+          <div style="font-size:12px;color:var(--ink-muted);line-height:1.7;">
+            Linen, Wi-Fi, parking and coffee machine all included — no surprise extras.<br><br>
+            Book via <a href="https://holidayyamba.com.au/accommodation/redgate-classic-coastal-charm-with-unbeatable-ocean-views-holiday-yamba/" target="_blank" style="color:var(--ocean);">Holiday Yamba</a> · (02) 6645 8000
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+TIES ▐▐ -->
+  <div class="section" id="tab-properties">
+    <div class="section-title">🏠 Redgate, Yamba</div>
+    <div class="section-sub">Our chosen property · 54 Clarence St · 19 Apr – 3 May 2026</div>
+
+    <!-- ⭐ CHOSEN PROPERTY CARD -->
+    <div style="background:var(--white);border:2px solid var(--ocean);border-radius:12px;padding:20px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+        <div>
+          <div style="font-size:17px;font-weight:600;color:var(--ink);">⭐ Redgate — 54 Clarence St, Yamba</div>
+          <div style="font-size:11px;color:var(--ink-faint);font-family:'DM Mono',monospace;margin-top:2px;">Holiday Yamba · 19 Apr – 3 May 2026 · 14 nights · $3,563.78 total</div>
+        </div>
+        <a href="https://holidayyamba.com.au/accommodation/redgate-classic-coastal-charm-with-unbeatable-ocean-views-holiday-yamba/?check-in=19-04-2026&check-out=03-05-2026&adult=7" target="_blank" style="font-size:12px;color:var(--ocean);font-family:'DM Mono',monospace;text-decoration:none;border:1px solid var(--ocean);padding:6px 12px;border-radius:8px;white-space:nowrap;">View listing →</a>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:16px;">
+        <div style="padding:8px 10px;background:var(--sand);border-radius:8px;font-size:11px;color:var(--ink-muted);font-family:'DM Mono',monospace;">🛏️ 5 bedrooms · sleeps 11</div>
+        <div style="padding:8px 10px;background:var(--sand);border-radius:8px;font-size:11px;color:var(--ink-muted);font-family:'DM Mono',monospace;">🛁 2 bathrooms</div>
+        <div style="padding:8px 10px;background:var(--sand);border-radius:8px;font-size:11px;color:var(--ink-muted);font-family:'DM Mono',monospace;">🌊 Steps from Pippi Beach</div>
+        <div style="padding:8px 10px;background:var(--sand);border-radius:8px;font-size:11px;color:var(--ink-muted);font-family:'DM Mono',monospace;">👀 Ocean views upstairs</div>
+        <div style="padding:8px 10px;background:var(--sand);border-radius:8px;font-size:11px;color:var(--ink-muted);font-family:'DM Mono',monospace;">🍽️ Two living areas</div>
+        <div style="padding:8px 10px;background:var(--sand);border-radius:8px;font-size:11px;color:var(--ink-muted);font-family:'DM Mono',monospace;">✅ Linen included</div>
+        <div style="padding:8px 10px;background:var(--sand);border-radius:8px;font-size:11px;color:var(--ink-muted);font-family:'DM Mono',monospace;">☕ Coffee machine</div>
+        <div style="padding:8px 10px;background:var(--sand);border-radius:8px;font-size:11px;color:var(--ink-muted);font-family:'DM Mono',monospace;">📶 Wi-Fi · Free parking</div>
+        <div style="padding:8px 10px;background:var(--sand);border-radius:8px;font-size:11px;color:var(--ink-muted);font-family:'DM Mono',monospace;">🌿 Enclosed backyard</div>
+        <div style="padding:8px 10px;background:var(--sand);border-radius:8px;font-size:11px;color:var(--ink-muted);font-family:'DM Mono',monospace;">🍖 BBQ</div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:10px;">Room allocation</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;">
+          <div style="padding:10px 12px;background:var(--ocean-pale);border-radius:8px;border:1px solid rgba(26,92,122,0.12);">
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--ocean);font-weight:500;">BR1 · Twin (2 singles)</div>
+            <div style="font-size:12px;color:var(--ink);margin-top:3px;font-weight:500;">Monet + Liz (wk1) · Monet solo (wk2)*</div>
+            <div style="font-size:10px;color:var(--ink-faint);margin-top:2px;">Own single each · upstairs</div>
+          </div>
+          <div style="padding:10px 12px;background:var(--ocean-pale);border-radius:8px;border:1px solid rgba(26,92,122,0.12);">
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--ocean);font-weight:500;">BR2 · Queen</div>
+            <div style="font-size:12px;color:var(--ink);margin-top:3px;font-weight:500;">Jess</div>
+            <div style="font-size:10px;color:var(--ink-faint);margin-top:2px;">Private · upstairs</div>
+          </div>
+          <div style="padding:10px 12px;background:var(--ocean-pale);border-radius:8px;border:1px solid rgba(26,92,122,0.12);">
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--ocean);font-weight:500;">BR3 · Double + spare single</div>
+            <div style="font-size:12px;color:var(--ink);margin-top:3px;font-weight:500;">Emre</div>
+            <div style="font-size:10px;color:var(--ink-faint);margin-top:2px;">Private · downstairs</div>
+          </div>
+          <div style="padding:10px 12px;background:var(--ocean-pale);border-radius:8px;border:1px solid rgba(26,92,122,0.12);">
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--ocean);font-weight:500;">BR4 · Queen</div>
+            <div style="font-size:12px;color:var(--ink);margin-top:3px;font-weight:500;">Hass + Jojo</div>
+            <div style="font-size:10px;color:var(--ink-faint);margin-top:2px;">Couple · downstairs</div>
+          </div>
+          <div style="padding:10px 12px;background:var(--ocean-pale);border-radius:8px;border:1px solid rgba(26,92,122,0.12);">
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--ocean);font-weight:500;">BR5 · Double</div>
+            <div style="font-size:12px;color:var(--ink);margin-top:3px;font-weight:500;">LT</div>
+            <div style="font-size:10px;color:var(--ink-faint);margin-top:2px;">Private · downstairs</div>
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--ink-faint);margin-top:8px;font-family:'DM Mono',monospace;">* Wk 2: Liz departs Sun 26 Apr → BR1 is Monet's private room. If Mairéad joins, she shares BR1 with Monet from wk 2.</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">
+        <div style="padding:10px 12px;background:var(--sand);border-radius:8px;line-height:1.6;">
+          <strong style="color:var(--ink);">About the property</strong><br>
+          <span style="color:var(--ink-muted);">Classic two-level beach house perched above Pippi Beach. Upstairs has the open-plan kitchen, dining and lounge with ocean views. Downstairs has three bedrooms, a kitchenette, laundry and second lounge that opens to the backyard. Two-minute walk to the beach, five minutes to the Pacific Hotel.</span>
+        </div>
+        <div style="padding:10px 12px;background:var(--sand);border-radius:8px;line-height:1.6;">
+          <strong style="color:var(--ink);">Booking details</strong><br>
+          <span style="color:var(--ink-muted);">Holiday Yamba<br>📞 (02) 6645 8000<br>✉️ <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c6b4a3a8b2a7aab586aea9aaafa2a7bfbfa7aba4a7e8a5a9abe8a7b3">[email&#160;protected]</a><br>Check-in: Sun 19 Apr<br>Check-out: Sun 3 May</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <button onclick="var el=document.getElementById('prop-research');var btn=this;el.style.display=el.style.display==='none'?'block':'none';btn.textContent=el.style.display==='none'?'▶ Show all properties researched':'▼ Hide properties researched';" style="background:none;border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--ink-muted);cursor:pointer;font-family:'DM Mono',monospace;">▶ Show all properties researched</button>
+    </div>
+    <div id="prop-research" style="display:none;">
+    <div class="prop-summary-bar">
+      <div class="prop-summary-box"><div class="prop-summary-val" id="ps-total">0</div><div class="prop-summary-lbl">Total found</div></div>
+      <div class="prop-summary-box"><div class="prop-summary-val" id="ps-shortlisted">0</div><div class="prop-summary-lbl">Shortlisted</div></div>
+      <div class="prop-summary-box"><div class="prop-summary-val" id="ps-contacted">0</div><div class="prop-summary-lbl">Contacted</div></div>
+      <div class="prop-summary-box"><div class="prop-summary-val" id="ps-passed">0</div><div class="prop-summary-lbl">Passed</div></div>
+    </div>
+
+    <div class="prop-filters">
+      <div class="prop-filter-group">
+        <span class="prop-filter-label">Status</span>
+        <button class="prop-filter-btn active" onclick="setFilter('status','all',this)">All</button>
+        <button class="prop-filter-btn" onclick="setFilter('status','new',this)">New</button>
+        <button class="prop-filter-btn" onclick="setFilter('status','shortlisted',this)">Shortlisted</button>
+        <button class="prop-filter-btn" onclick="setFilter('status','contacted',this)">Contacted</button>
+        <button class="prop-filter-btn" onclick="setFilter('status','passed',this)">Passed</button>
+      </div>
+      <div class="prop-filter-group">
+        <span class="prop-filter-label">Location</span>
+        <button class="prop-filter-btn active" onclick="setFilter('area','Yamba',this)">Yamba</button>
+        <button class="prop-filter-btn" onclick="setFilter('area','all',this)">All locations</button>
+        <button class="prop-filter-btn" onclick="setFilter('area','Noosa',this)">Noosa</button>
+        <button class="prop-filter-btn" onclick="setFilter('area','Sunshine Coast South',this)">Sunshine Coast South</button>
+        <button class="prop-filter-btn" onclick="setFilter('area','Port Stephens',this)">Port Stephens</button>
+      </div>
+      <div class="prop-filter-group">
+        <span class="prop-filter-label">Price (7 nights)</span>
+        <button class="prop-filter-btn active" onclick="setFilter('price','all',this)">Any</button>
+        <button class="prop-filter-btn" onclick="setFilter('price','under4k',this)">Under $4k</button>
+        <button class="prop-filter-btn" onclick="setFilter('price','4kto7k',this)">$4k–$7k</button>
+        <button class="prop-filter-btn" onclick="setFilter('price','7kto10k',this)">$7k–$10k</button>
+        <button class="prop-filter-btn" onclick="setFilter('price','over10k',this)">Over $10k</button>
+      </div>
+      <div class="prop-filter-group">
+        <span class="prop-filter-label">Beach access</span>
+        <button class="prop-filter-btn active" onclick="setFilter('beach','all',this)">Any</button>
+        <button class="prop-filter-btn" onclick="setFilter('beach','1',this)">Walk</button>
+        <button class="prop-filter-btn" onclick="setFilter('beach','2',this)">Short drive</button>
+      </div>
+    </div>
+
+    <div class="prop-grid" id="prop-grid"></div>
+    </div><!-- end prop-research -->
+  </div>
+
+
+
+
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ── TAB SWITCHING ──
+function showTab(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  var sec = document.getElementById('tab-' + id);
+  if (sec) sec.classList.add('active');
+  if (el) { el.classList.add('active'); } else if (typeof event !== 'undefined' && event.target) { event.target.classList.add('active'); }
+}
+
+// ── DESTINATIONS DATA ──
+const destinations = [
+  { name:'Yamba', region:'Clarence Valley, NSW', airport:'Ballina/Byron (BNK) — 1hr', beach:5, houses:3, airportEase:3, value:5, top:true, verdict:'⭐ Current favourite', verdictClass:'fave', img:'https://upload.wikimedia.org/wikipedia/commons/8/82/Clarence_Head_lighthouse.jpg',
+    highlights: ['🏄 World-class surf at Angourie', '☀️ Less crowded than Byron', '💰 Best value on the list', '🏠 10+ properties shortlisted', '🦬 Dolphin & whale sightings', '📍 Tight cluster — all walkable', '🍕 Great cafes & Pacific Hotel', '✉️ Enquiry sent to Holiday Yamba'],
+    note:'Consistently rated one of Australia\'s best small towns. Excellent surf, great cafes, river mouth location adds variety. Less touristy than Byron so April pricing is much friendlier. Multiple properties shortlisted and enquiry sent to Holiday Yamba.' },
+  { name:'Noosa', region:'Sunshine Coast, QLD', airport:'Sunshine Coast (MCY) — 45min', beach:5, houses:4, airportEase:5, value:3, top:true, verdict:'Top pick', verdictClass:'green', img:'https://upload.wikimedia.org/wikipedia/commons/f/fc/Noosa_Main_Beach_from_boardwalk.jpg', note:'Strong contender for a group house trip. Great national park, calm beach, excellent food scene. Sunshine Coast Airport has direct flights from Sydney, Melbourne, Adelaide & more. April is shoulder season — good availability after Easter crowds thin out.' },
+  { name:'Byron Bay', region:'Northern NSW', airport:'Ballina/Byron (BNK) — 30min', beach:5, houses:4, airportEase:3, value:2, top:false, verdict:'Book fast', verdictClass:'amber', img:'https://upload.wikimedia.org/wikipedia/commons/6/6d/Byron_Bay_Lighthouse,_Beach_and_Hinterland_in_the_Northern_Rivers,_NSW,_Australia.jpg', note:'The classic choice. Huge supply of large beach houses. Gets very busy around Easter — book early. Nearest airport is Ballina/Byron (BNK, 30min) — good for domestic but limited routes. Gold Coast (OOL) is 1.5hrs away but has far more flight options. Also consider nearby Lennox Head or Brunswick Heads for lower prices.' },
+  { name:'Burleigh Heads', region:'Gold Coast, QLD', airport:'Gold Coast (OOL) — 20min', beach:5, houses:3, airportEase:5, value:3, top:false, verdict:'Urban energy', verdictClass:'amber', img:'https://upload.wikimedia.org/wikipedia/commons/0/04/Burleigh_Heads.jpg', note:'Stunning beach and headland with a buzzy cafe/bar scene. Gold Coast Airport is only 20 minutes away — excellent for arrivals. Most rental stock is apartments rather than large standalone houses, which limits big group options.' },
+  { name:'Port Stephens', region:'Nelson Bay, NSW', airport:'Newcastle (NTL) — 50min', beach:4, houses:4, airportEase:4, value:5, top:true, verdict:'Best value', verdictClass:'green', img:'https://upload.wikimedia.org/wikipedia/commons/8/86/Nelson_Bay.jpg', note:'Underrated gem. Beautiful white sand dunes, calm dolphin-watching bay, less crowded than Byron. Newcastle airport has Jetstar/Virgin links. Best value for large groups.' },
+  { name:'Coffs Harbour', region:'Mid-North Coast, NSW', airport:'Coffs (CFS) — 15min', beach:4, houses:3, airportEase:5, value:4, top:false, verdict:'Easy logistics', verdictClass:'amber', img:'https://upload.wikimedia.org/wikipedia/commons/e/e0/Coffs_Harbour_IMG_4379_-_panoramio.jpg', note:'Has its own regional airport — easiest arrivals by far. Smaller town with fewer large group houses. Works well as a stopover if doing two locations across 2 weeks.' },
+  { name:'Gerringong', region:'Illawarra, NSW', airport:'Sydney (SYD) — 1.5hr drive', beach:4, houses:2, airportEase:1, value:4, top:false, verdict:'Logistics risk', verdictClass:'red', img:'https://upload.wikimedia.org/wikipedia/commons/b/b8/Gerringong_from_South_Head.jpg', note:'Gorgeous green headlands and charming village feel. Closest major airport is Sydney — everyone would need to fly in and drive. Small rental pool means large group houses are limited and book fast.' },
+  { name:'Mollymook', region:'Shoalhaven, NSW', airport:'Sydney (SYD) — 2.5hr drive', beach:4, houses:3, airportEase:1, value:4, top:false, verdict:'Logistics risk', verdictClass:'red', img:'https://upload.wikimedia.org/wikipedia/commons/8/80/Collers_Beach,_Mollymook.jpg', note:'Beautiful long beach, great seafood, very relaxed south coast energy. No nearby airport — everyone needs to fly into Sydney and drive ~2.5hrs. Logistics get messy for an internationally-dispersed group.' },
+  { name:'Hamilton Island', region:'Whitsundays, QLD', airport:'Own airstrip — direct', beach:5, houses:2, airportEase:5, value:1, top:false, verdict:'Resort splurge', verdictClass:'amber', img:'https://upload.wikimedia.org/wikipedia/commons/1/12/Hamilton_Island,_Whitsundays_1,_Australia.jpg', note:'Stunning but a different category. Resort island with no cars, limited self-catering, and premium pricing. Better suited to a 2–3 night splurge than a week-long group house stay.' },
+];
+
+const pipFill = [null,'#E24B4A','#EF9F27','#BA7517','#5DCAA5','#1D9E75'];
+
+function pips(score) {
+  return Array.from({length:5},(_,i)=>`<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${i<score?pipFill[score]:'#D5D0C5'};margin-right:3px;"></span>`).join('');
+}
+
+let sortKey = 'default';
+let expandedCard = null;
+
+function sortDest(key, el) {
+  sortKey = key;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderDest();
+}
+
+function overall(d) { return d.beach + d.houses + d.airportEase + d.value; }
+
+function renderDest() {
+  if (!document.getElementById('dest-grid')) return;
+  let sorted = [...destinations];
+  if (sortKey === 'overall') sorted.sort((a,b) => overall(b)-overall(a));
+  else if (sortKey !== 'default') sorted.sort((a,b) => b[sortKey]-a[sortKey]);
+
+  document.getElementById('dest-grid').innerHTML = sorted.map((d,i) => `
+    <div class="dest-card ${d.verdictClass==='fave'?'fave top':d.top?'top':''}" id="dc-${d.name.replace(/\s/g,'_')}" onclick="toggleCard('${d.name.replace(/\s/g,'_')}')">
+      <div class="dest-card-img-wrap" id="dimg-${d.name.replace(/\s/g,'_')}">
+        ${d.img ? `<img src="${d.img}" alt="${d.name}" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.4s;" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">` : ''}
+        <div class="star">${d.verdictClass==='fave' ? '⭐ Current favourite' : '&#9733; Recommended'}</div>
+      </div>
+      <div class="dest-card-body">
+        <div class="dest-card-name">${d.name}</div>
+        <div class="dest-card-region">${d.region}</div>
+        <div class="dest-card-airport">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19.5 2.5S18 1 16.5 2.5L13 6 4.8 4.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.3c.3-.2.4-.6.5-1.1z"/></svg>
+          ${d.airport}
+        </div>
+        <div class="rating-row"><span class="rating-label">Beaches</span><div class="rating-bar"><div class="rating-fill ${d.beach>=4?'fill-great':d.beach>=3?'fill-ok':'fill-weak'}" style="width:${d.beach*20}%"></div></div>${pips(d.beach)}</div>
+        <div class="rating-row"><span class="rating-label">Group houses</span><div class="rating-bar"><div class="rating-fill ${d.houses>=4?'fill-great':d.houses>=3?'fill-ok':'fill-weak'}" style="width:${d.houses*20}%"></div></div>${pips(d.houses)}</div>
+        <div class="rating-row"><span class="rating-label">Airport ease</span><div class="rating-bar"><div class="rating-fill ${d.airportEase>=4?'fill-great':d.airportEase>=3?'fill-ok':'fill-weak'}" style="width:${d.airportEase*20}%"></div></div>${pips(d.airportEase)}</div>
+        <div class="rating-row"><span class="rating-label">Value</span><div class="rating-bar"><div class="rating-fill ${d.value>=4?'fill-great':d.value>=3?'fill-ok':'fill-weak'}" style="width:${d.value*20}%"></div></div>${pips(d.value)}</div>
+        <div class="dest-tag-row">
+          <span class="dest-tag ${d.verdictClass}">${d.verdict}</span>
+          <span class="dest-tag amber">Score: ${overall(d)}/20</span>
+        </div>
+        ${d.highlights ? `<div class="dest-highlights">${d.highlights.map(h=>`<span class="dest-highlight-pill">${h}</span>`).join('')}</div>` : ''}
+        <div class="dest-card-note">${d.note}</div>
+        <div class="expand-btn">&#9660; more info</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleCard(id) {
+  const card = document.getElementById('dc-' + id);
+  card.classList.toggle('expanded');
+  const btn = card.querySelector('.expand-btn');
+  btn.textContent = card.classList.contains('expanded') ? '&#9650; less' : '&#9660; more info';
+}
+
+
+// ── ACCOMMODATION ──
+function updatePropSummary() {
+  const counts = properties.reduce((acc,p) => { acc[p.status]=(acc[p.status]||0)+1; return acc; }, {});
+  document.getElementById('ps-total').textContent = properties.length;
+  document.getElementById('ps-shortlisted').textContent = counts.shortlisted||0;
+  document.getElementById('ps-contacted').textContent = counts.contacted||0;
+  document.getElementById('ps-passed').textContent = counts.passed||0;
+}
+
+function setStatus(id, status) {
+  const p = properties.find(x => x.id===id);
+  if(p) { p.status=status; renderProps(); }
+}
+
+function setFilter(key, value, btn) {
+  propFilters[key] = value;
+  btn.closest('.prop-filter-group').querySelectorAll('.prop-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProps();
+}
+
+// Legacy support
+function filterProps(filter, btn) { setFilter('status', filter, btn); }
+
+function renderProps() {
+  const filtered = properties.filter(function(p) {
+    if (propFilters.status !== 'all' && p.status !== propFilters.status) return false;
+    if (propFilters.area !== 'all' && p.area !== propFilters.area) return false;
+    if (propFilters.price !== 'all') {
+      if (propFilters.price === 'under4k' && p.price && p.price >= 4000) return false;
+      if (propFilters.price === '4kto7k' && (p.price < 4000 || p.price >= 7000)) return false;
+      if (propFilters.price === '7kto10k' && (p.price < 7000 || p.price >= 10000)) return false;
+      if (propFilters.price === 'over10k' && (!p.price || p.price < 10000)) return false;
+    }
+    if (propFilters.beach !== 'all' && p.beachDist !== parseInt(propFilters.beach)) return false;
+    return true;
+  });
+
+  // When showing all, sort Yamba first then other areas
+  const showingAll = propFilters.area === 'all';
+  if (showingAll) {
+    filtered.sort(function(a, b) {
+      const aY = a.area === 'Yamba' ? 0 : 1;
+      const bY = b.area === 'Yamba' ? 0 : 1;
+      return aY - bY;
+    });
+  }
+
+  const statusLabel = { new:'New', shortlisted:'Shortlisted', contacted:'Contacted', passed:'Passed' };
+  const statusCls   = { new:'status-new', shortlisted:'status-shortlisted', contacted:'status-contacted', passed:'status-passed' };
+  const cardCls     = { new:'', shortlisted:'shortlisted', contacted:'contacted', passed:'passed' };
+
+  if (filtered.length === 0) {
+    document.getElementById('prop-grid').innerHTML = '<div class="empty-state">No properties with this status yet.</div>';
+    updatePropSummary();
+    return;
+  }
+
+  var html = '';
+  var altDividerAdded = false;
+  for (var i=0; i<filtered.length; i++) {
+    var p = filtered[i];
+
+    // Insert divider between Yamba and alternatives when showing all
+    if (showingAll && !altDividerAdded && p.area !== 'Yamba') {
+      altDividerAdded = true;
+      html += '<div style="margin:18px 0 10px;padding:10px 14px;background:var(--sand-dark);border-radius:10px;display:flex;align-items:center;gap:10px;">' +
+        '<span style="font-family:\'DM Mono\',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-faint);">Other destinations — alternatives</span>' +
+        '<div style="flex:1;height:1px;background:var(--border);"></div>' +
+        '</div>';
+    }
+
+    var priceHtml = p.price
+      ? '<div class="prop-price">$' + p.price.toLocaleString() + '</div><div class="prop-price-label">total &middot; 7 nights</div>'
+      : '<div style="font-size:12px;color:var(--ink-faint);">POA &mdash; enquire</div>';
+
+    var nightlyHtml = p.price
+      ? '<span class="prop-stat"><strong>$' + Math.round(p.price/7).toLocaleString() + '</strong>/night</span>'
+      : '';
+
+    var ratingHtml = '';
+    if (p.rating) {
+      ratingHtml = '<span class="prop-stat">\u2605 <strong>' + p.rating + '</strong> (' + p.reviews + ')</span>';
+    } else if (p.reviews===0 && p.source==='Airbnb') {
+      ratingHtml = '<span class="prop-stat">New listing</span>';
+    }
+
+    var tagsHtml = '';
+    if (p.tags.length) {
+      tagsHtml = '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;">';
+      for (var t=0; t<p.tags.length; t++) {
+        tagsHtml += '<span class="dest-tag green">' + p.tags[t] + '</span>';
+      }
+      tagsHtml += '</div>';
+    }
+
+    var resetHtml = p.status !== 'new'
+      ? '<button class="prop-action-btn" onclick="setStatus(' + p.id + ',\'new\')">&#8635; Reset</button>'
+      : '';
+
+    var imgHtml = p.img
+      ? '<div class="prop-img-wrap"><img src="' + p.img + '" alt="' + p.name + '" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.style.display=\'none\'"><span class="prop-img-source">' + p.source + '</span></div>'
+      : '<div class="prop-img-wrap" style="display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:var(--ink-faint);">No photo</span></div>';
+
+    html += '<div class="prop-card ' + cardCls[p.status] + '">';
+    html +=   imgHtml;
+    html +=   '<div class="prop-header">';
+    html +=     '<div>';
+    html +=       '<div class="prop-name">' + p.name + '</div>';
+    html +=       '<div class="prop-meta">' + p.location + '</div>';
+    html +=     '</div>';
+    html +=     '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">';
+    html +=       '<span class="prop-status ' + statusCls[p.status] + '">' + statusLabel[p.status] + '</span>';
+    html +=       priceHtml;
+    html +=     '</div>';
+    html +=   '</div>';
+    html +=   '<div class="prop-stats">';
+    html +=     '<span class="prop-stat"><strong>' + p.beds + '</strong> bedrooms</span>';
+    html +=     '<span class="prop-stat"><strong>' + p.sleeps + '</strong> sleeps</span>';
+    html +=     nightlyHtml;
+    html +=     ratingHtml;
+    html +=     '<span class="prop-stat">' + p.source + '</span>';
+    html +=   '</div>';
+    html +=   tagsHtml;
+    html +=   '<div class="prop-body">' + p.note + '</div>';
+    html +=   '<div class="prop-actions">';
+    html +=     '<button class="prop-action-btn ' + (p.status==='shortlisted'?'active':'') + '" onclick="setStatus(' + p.id + ',\'shortlisted\')">\u2605 Shortlist</button>';
+    html +=     '<button class="prop-action-btn ' + (p.status==='contacted'?'active':'') + '" onclick="setStatus(' + p.id + ',\'contacted\')">&#9993; Contacted</button>';
+    html +=     '<button class="prop-action-btn ' + (p.status==='passed'?'active':'') + '" onclick="setStatus(' + p.id + ',\'passed\')">&#10005; Pass</button>';
+    html +=     resetHtml;
+    html +=     '<a href="' + p.url + '" target="_blank" class="prop-action-btn" style="text-decoration:none;">View listing &rarr;</a>';
+    html +=   '</div>';
+    html += '</div>';
+  }
+
+  document.getElementById('prop-grid').innerHTML = html;
+  updatePropSummary();
+}
+
+// ── PEOPLE ──
+const people = [
+  { name:'Hass',    room:'shared',  roomNote:'sharing bed with Jojo · BR4 queen',           duration:'2 weeks', open2:true  },
+  { name:'Jojo',    room:'shared',  roomNote:'sharing bed with Hass · BR4 queen',           duration:'2 weeks', open2:true  },
+  { name:'Jess',    room:'private', roomNote:'private · BR2 queen',                         duration:'2 weeks', open2:true  },
+  { name:'LT',      room:'private', roomNote:'private · BR5 double (wk 2) / BR3 (wk 1)',   duration:'2 weeks', open2:true  },
+  { name:'Emre',    room:'private', roomNote:'private · BR3 double',                        duration:'2 weeks', open2:true  },
+  { name:'Monet',   room:'private', roomNote:'private · BR1 twin · wk 2 solo (or w/ Mairéad if she joins)', duration:'2 weeks', open2:true  },
+  { name:'Liz',     room:'shared',  roomNote:'twin BR1 with Monet · week 1 only',           duration:'1 week',  open2:false },
+
+];
+
+function renderPeople() {
+  if (!document.getElementById('people-grid')) return;
+  const roomColor = { private:'#1A5C7A', shared:'#3A6B4A', either:'#C8922A' };
+  const roomLabel = { private:'Private', shared:'Shared', either:'Flexible' };
+  const grid = document.getElementById('people-grid');
+  if (!grid) return;
+  grid.innerHTML = people.map(p => `
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+      <div style="width:38px;height:38px;border-radius:50%;background:var(--ocean-pale);display:flex;align-items:center;justify-content:center;font-weight:500;font-size:14px;color:var(--ocean);flex-shrink:0;">${p.name[0]}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:500;font-size:14px;color:var(--ink);">${p.name}</div>
+        <div style="font-size:11px;color:var(--ink-faint);font-family:'DM Mono',monospace;margin-top:2px;">${p.roomNote}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+        <span style="font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500;font-family:'DM Mono',monospace;background:${roomColor[p.room]}20;color:${roomColor[p.room]};">${roomLabel[p.room]}</span>
+        <span style="font-size:10px;padding:2px 8px;border-radius:10px;font-family:'DM Mono',monospace;background:${p.open2?'var(--ocean-pale)':'var(--sand-dark)'};color:${p.open2?'var(--ocean)':'var(--ink-faint)'};">${p.open2?'Open to 2wk':'1 week only'}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+renderPeople();
+
+// ── PROPERTIES: only render when tab is clicked ──
+// Wrap showTab override cleanly
+(function() {
+  var _orig = window.showTab;
+  window.showTab = function(id) {
+    _orig.call(this, id);
+    if (id === 'properties') {
+      var g = document.getElementById('prop-grid');
+      if (g && g.innerHTML.trim() === '') { renderProps(); }
+      else if (g) { renderProps(); }
+    }
+  };
+})();
+
+function toggleDark() {
+  const root = document.documentElement;
+  const btn = document.getElementById('dark-toggle');
+  const isDark = root.getAttribute('data-theme') === 'dark';
+  if (isDark) {
+    root.setAttribute('data-theme', 'light');
+    btn.textContent = '🌙';
+  } else {
+    root.setAttribute('data-theme', 'dark');
+    btn.textContent = '☀️';
+  }
+}
+
+// Initialise: always start in lig
+// Initialise: always start in light mode, show moon icon to offer dark
+(function() {
+  document.documentElement.setAttribute('data-theme', 'light');
+  const btn = document.getElementById('dark-toggle');
+  if (btn) btn.textContent = '🌙';
+})();
+</script>
+</body>
+</html>
